@@ -6,7 +6,7 @@ import time
 import subprocess
 
 
-def file_read(filename):
+def fileRead(filename):
     try:
         with codecs.open(filename, "r", "utf-8") as f:
             return f.read().replace("\r", "")
@@ -14,7 +14,7 @@ def file_read(filename):
         return ""
 
 
-def file_write(filename, data):
+def fileWrite(filename, data):
     with codecs.open(filename, "w", "utf-8") as f:
         f.write(data.replace("\r", ""))
 
@@ -23,68 +23,70 @@ def error(t):
     errCode = None
     if t == 124:
         errCode = "TLE"
-        file_write('env/error.txt', "Time Limit Exceeded - Process killed.")
+        fileWrite("env/error.txt", "Time Limit Exceeded - Process killed.")
     elif t == 139:
         errCode = "SIGSEGV"
-        file_write('env/error.txt', 'SIGSEGV||Segmentation fault (core dumped)\n' +
-                   file_read("env/error.txt"))
+        fileWrite(
+            "env/error.txt",
+            "SIGSEGV||Segmentation fault (core dumped)\n" + fileRead("env/error.txt"),
+        )
     elif t == 136:
         errCode = "SIGFPE"
-        file_write('env/error.txt', 'SIGFPE||Floating point exception\n' +
-                   file_read("env/error.txt"))
+        fileWrite(
+            "env/error.txt",
+            "SIGFPE||Floating point exception\n" + fileRead("env/error.txt"),
+        )
     elif t == 134:
         errCode = "SIGABRT"
-        file_write('env/error.txt', 'SIGABRT||Aborted\n' +
-                   file_read("env/error.txt"))
+        fileWrite("env/error.txt", "SIGABRT||Aborted\n" + fileRead("env/error.txt"))
     elif t != 0:
         errCode = "NZEC"
-        file_write('env/error.txt', 'NZEC||return code : ' +
-                   str(t) + "\n" + file_read("env/error.txt"))
+        fileWrite(
+            "env/error.txt",
+            "NZEC||return code : " + str(t) + "\n" + fileRead("env/error.txt"),
+        )
     return errCode
 
 
 def createSourceCode(sourceCode, language):
     if os.path.exists("env/temp.*"):
         os.system("rm env/temp.*")
-    file_write(f'''env/temp.{langarr[language]["extension"]}''', sourceCode)
+    fileWrite(f"""env/temp.{langarr[language]["extension"]}""", sourceCode)
 
 
 def create(userId, language):
     if os.path.exists("env/out"):
         os.system("rm env/out")
-    if(language not in ['c', 'cpp']):
+    if language not in ["c", "cpp"]:
         return
-    print("Compiling Code File... ", end='', flush=True)
     result = None
     compilecmd = langarr[language]["compile"]
     os.system(compilecmd)
     if not os.path.exists("env/out"):
         result = "Compilation Error"
-    if result == None:
-        print(bcolors.OKGREEN+"Complete."+bcolors.RESET)
-    else:
-        print(bcolors.FAIL + result + bcolors.RESET)
     return result
 
 
 def execute(userId, problemId, testcase, timeLimit, memoryLimit, language):
-    inputfile = f''' <source/{problemId}/{testcase}.in 1>env/output.txt 2>env/error.txt'''
-    cmd = f'''ulimit -v {str(memoryLimit)}; {langarr[language]["execute"]}; exit;'''
-    cmd = cmd.replace("[inputfile]", inputfile)
-    if(os.path.exists("env/error.txt")):
-        os.system("chmod 777 env/error.txt")
-    if(os.path.exists("env/output.txt")):
-        os.system("chmod 777 env/output.txt")
+    inputFile = (
+        f" <source/{problemId}/{testcase}.in 1>env/output.txt 2>env/error.txt"
+    )
+    cmd = f"ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
+    cmd = cmd.replace("[inputfile]", inputFile)
+    if os.path.exists("env/error.txt"):
+        os.system("chmod 311 env/error.txt")
+    if os.path.exists("env/output.txt"):
+        os.system("chmod 311 env/output.txt")
     starttime = time.time()
     proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
     try:
-        proc.communicate(timeout=(timeLimit/1000))
+        proc.communicate(timeout=(timeLimit / 1000))
         t = proc.returncode
     except subprocess.TimeoutExpired:
         t = 124
     endtime = time.time()
     timediff = endtime - starttime
-    if(os.path.exists("/proc/"+str(proc.pid))):
+    if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     return t, timediff
 
@@ -95,7 +97,7 @@ def cmpfunc(fname1, fname2):
             while True:
                 f1_line = f1.readline()
                 f2_line = f2.readline()
-                if f1_line == '' and f2_line == '':
+                if f1_line == "" and f2_line == "":
                     return True
                 if f1_line.rstrip() != f2_line.rstrip():
                     return False

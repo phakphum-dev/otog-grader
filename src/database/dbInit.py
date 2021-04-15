@@ -13,7 +13,7 @@ class DB:
 
     def connect(self):
         self.conn = init()
-        print(bcolors.OKGREEN + 'Mysql: Connection successful.' + bcolors.RESET)
+        print("{bcolors.OKGREEN}[ MYSQL ] Connected successfully.{bcolors.RESET}")
 
     def disconnect(self):
         self.conn.close()
@@ -34,9 +34,9 @@ class DB:
                     cursor.execute(sql, value)
                     return cursor
                 except:
-                    print(bcolors.WARNING +
-                          f'Mysql: Connection Failed, Retrying.. ({i+1})'
-                          + bcolors.RESET)
-                    time.sleep(i+1)
-            print(bcolors.FAIL + 'Mysql: Connection Lost.' + bcolors.RESET)
+                    print(
+                        f"{bcolors.WARNING}[ MYSQL ] Connection failed, retrying in ({i+1}) secs...{bcolors.RESET}"
+                    )
+                    time.sleep(i + 1)
+            print(f"{bcolors.FAIL}[ MYSQL ] Connection Lost.{bcolors.RESET}")
             exit(1)

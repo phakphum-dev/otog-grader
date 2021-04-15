@@ -3,5 +3,5 @@ dbConfig = {
     "port": "8888",
     "user": "root",
     "passwd": "0000",
-    "database": "otog"
+    "database": "otog",
 }
