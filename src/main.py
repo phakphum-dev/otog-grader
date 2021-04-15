@@ -165,7 +165,7 @@ def main():
         )
 
         if not err:
-            print(f"\nTime Used: {int(sumTime)} ms.")
+            print(f"\n\t-> Time used: {int(sumTime)} ms.")
 
         print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Grading session completed.\n\t-> Waiting for new submission.")
         
