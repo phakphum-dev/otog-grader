@@ -37,7 +37,7 @@ def main():
         count = 0
         sumTime = 0
         print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Receive New Submission.")
-        print(f"[ {datetime.now().strftime('%d/%m/%Y - %H:%M:%S')} ] ----------------------- ")
+        print(f"[ {datetime.now().strftime('%d/%m/%Y - %H:%M:%S')} ]")
         print(
             tabulate.tabulate(
                 [
@@ -51,7 +51,6 @@ def main():
                 tablefmt="orgtbl",
             )
         )
-        print("------------------------------------------------------")
 
         # If does not specify number of testcase
         if not submission.testcase:
