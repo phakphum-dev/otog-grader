@@ -13,7 +13,7 @@ class DB:
 
     def connect(self):
         self.conn = init()
-        print("{bcolors.OKGREEN}[ MYSQL ] Connected successfully.{bcolors.RESET}")
+        print(f"{bcolors.OKGREEN}[ MYSQL ] Connected successfully.{bcolors.RESET}")
 
     def disconnect(self):
         self.conn.close()
