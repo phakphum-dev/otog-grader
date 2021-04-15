@@ -1,6 +1,6 @@
 from pathlib import Path
 import time
-import datetime
+from datetime import datetime
 import tabulate
 
 from constants import bcolors, langarr
