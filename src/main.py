@@ -23,7 +23,7 @@ def main():
     except:
         print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
         exit(1)
-    print(f"[{ bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
+    print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
 
     while True:
         queue = getQueue()
