@@ -74,9 +74,9 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language):
     cmd = f"ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
     cmd = cmd.replace("[inputfile]", inputFile)
     if os.path.exists("env/error.txt"):
-        os.system("chmod 755 env/error.txt")
+        os.system("chmod 777 env/error.txt")
     if os.path.exists("env/output.txt"):
-        os.system("chmod 755 env/output.txt")
+        os.system("chmod 777 env/output.txt")
     starttime = time.time()
     proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
     try:
