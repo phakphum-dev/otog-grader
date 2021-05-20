@@ -103,21 +103,35 @@ def stdcmpfunc(fname1, fname2):
                     return False
     except:
         return False
-    
+
+def getTypeJudge(problemId):
+    PROBLEM_PATH = f"./source/{problemId}"
+    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
+        return "ogogi"
+    return "standard"
 
 def getVerdict(problemId, userPath, solPath):
-    PROBLEM_PATH = "./source/{problemId}"
+    PROBLEM_PATH = f"./source/{problemId}"
+    judgeType = getTypeJudge(problemId)
 
     #OGOGI Judge
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
+    if judgeType == "ogogi":
         thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE)
         result,_ = proc.communicate()
         t = proc.returncode
         if os.path.exists("/proc/" + str(proc.pid)):
             #RIP
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        
         result = result.decode(encoding="utf8")
+        if t != 0 or len(result.strip()) != 1:
+            return "!"#Judge Error... Bruh
         return result.strip()
+    
+
+    #Standard Judge
+    return stdcmpfunc(userPath, solPath) and "P" or "-"
+
     
 

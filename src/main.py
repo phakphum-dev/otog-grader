@@ -11,7 +11,7 @@ from database import (
     closeConnection,
     testConnection,
 )
-from handle import create, execute, error, getVerdict, createSourceCode, fileRead
+from handle import create, execute, error, getVerdict, getTypeJudge, createSourceCode, fileRead
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
@@ -120,6 +120,7 @@ def main():
         if not submission.contestId:
             testcase = testcase[-1:]
 
+        print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] use {getTypeJudge(submission.problemId)} Judge...")
         print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] Runtime process:")
         print("\t-> Result: ", end="", flush=True)
         for sub in testcase:
