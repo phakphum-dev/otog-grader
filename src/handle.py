@@ -4,7 +4,7 @@ import os
 import signal
 import time
 import subprocess
-
+from pathlib import Path
 
 def fileRead(filename):
     try:
@@ -91,7 +91,7 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language):
     return t, timediff
 
 
-def cmpfunc(fname1, fname2):
+def stdcmpfunc(fname1, fname2):
     try:
         with open(fname1) as f1, open(fname2) as f2:
             while True:
@@ -103,3 +103,21 @@ def cmpfunc(fname1, fname2):
                     return False
     except:
         return False
+    
+
+def getVerdict(problemId, userPath, solPath):
+    PROBLEM_PATH = "./source/{problemId}"
+
+    #OGOGI Judge
+    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
+        thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath}"
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        result,_ = proc.communicate()
+        t = proc.returncode
+        if os.path.exists("/proc/" + str(proc.pid)):
+            #RIP
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        result = result.decode(encoding="utf8")
+        return result.strip()
+    
+

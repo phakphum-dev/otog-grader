@@ -11,7 +11,7 @@ from database import (
     closeConnection,
     testConnection,
 )
-from handle import create, execute, error, cmpfunc, createSourceCode, fileRead
+from handle import create, execute, error, getVerdict, createSourceCode, fileRead
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
@@ -94,10 +94,12 @@ def main():
                 "Cannot decode your submitted code. Check your submission.",
             )
             continue
-
+        
+        # ? The name of the source file should change everyone when they submit
+        # ? cuz if they #include<temp.cpp> It will DOOM the server!
         # Write source string to file
         createSourceCode(sourceCode, submission.language)
-
+        
         # Compile
         err = create(submission.userId, submission.language)
 
@@ -134,17 +136,16 @@ def main():
                     submission.language,  # Language
                 )
 
-                userOutput = "env/output.txt"
-                probOutput = f"./source/{submission.problemId}/{x+1}.sol"
+                userOutputPath = "env/output.txt"
+                probOutputPath = f"./source/{submission.problemId}/{x+1}.sol"
 
                 sumTime += elapse * 1000
                 errCode = error(t)
                 if not errCode:
-                    if cmpfunc(userOutput, probOutput):
-                        verdict = "P"
+                    verdict = getVerdict(submission.problemId, userOutputPath, probOutputPath)
+                    if verdict == "P":
                         count += 1
-                    else:
-                        verdict = "-"
+                    
                 elif errCode == "TLE":
                     verdict = "T"
                 else:
