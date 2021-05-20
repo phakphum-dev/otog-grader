@@ -51,7 +51,9 @@ def error(t):
 def createSourceCode(sourceCode, language):
     if os.path.exists("env/temp.*"):
         os.system("rm env/temp.*")
-    fileWrite(f"""env/temp.{langarr[language]["extension"]}""", sourceCode)
+    srcPath = f"""env/temp.{langarr[language]["extension"]}"""
+    fileWrite(srcPath, sourceCode)
+    return srcPath
 
 
 def create(userId, language):
@@ -108,11 +110,17 @@ def getTypeJudge(problemId):
     PROBLEM_PATH = f"./source/{problemId}"
     if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
         return "ogogi"
+    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
+        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc.communicate()
+        if os.path.exists("/proc/" + str(proc.pid)):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)#RIP
+        return "check.cpp"
     return "standard"
 
-def getVerdict(problemId, userPath, solPath):
+def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"
-    judgeType = getTypeJudge(problemId)
 
     #OGOGI Judge
     if judgeType == "ogogi":
@@ -128,6 +136,29 @@ def getVerdict(problemId, userPath, solPath):
         if t != 0 or len(result.strip()) != 1:
             return "!"#Judge Error... Bruh
         return result.strip()
+    elif judgeType == "check.cpp":
+        if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
+            return "!"
+
+        os.system(f"cp {userPath} ./output.txt")
+        thisCmd = f"{PROBLEM_PATH}/binCheck {solPath} {PROBLEM_PATH}/{testCase}.in {srcPath}"
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc.communicate()
+        if os.path.exists("/proc/" + str(proc.pid)):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)#RIP
+        t = proc.returncode
+        
+
+        result = fileRead(f"./grader_result.txt")
+        try:
+            os.system("rm ./output.txt")
+            os.system("rm ./grader_result.txt")
+        except:
+            pass
+
+        if t != 0 or len(result.strip()) != 1:
+            return "!"#Judge Error... Bruh
+        return result.strip().replace("W","-")
     
 
     #Standard Judge

@@ -98,7 +98,7 @@ def main():
         # ? The name of the source file should change everyone when they submit
         # ? cuz if they #include<temp.cpp> It will DOOM the server!
         # Write source string to file
-        createSourceCode(sourceCode, submission.language)
+        srcCodePath = createSourceCode(sourceCode, submission.language)
         
         # Compile
         err = create(submission.userId, submission.language)
@@ -120,7 +120,9 @@ def main():
         if not submission.contestId:
             testcase = testcase[-1:]
 
-        print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] use {getTypeJudge(submission.problemId)} Judge...")
+        judgeType = getTypeJudge(submission.problemId)
+
+        print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] use {judgeType} Judge...")
         print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] Runtime process:")
         print("\t-> Result: ", end="", flush=True)
         for sub in testcase:
@@ -143,7 +145,7 @@ def main():
                 sumTime += elapse * 1000
                 errCode = error(t)
                 if not errCode:
-                    verdict = getVerdict(submission.problemId, userOutputPath, probOutputPath)
+                    verdict = getVerdict(submission.problemId, userOutputPath, probOutputPath, x+1, srcCodePath, judgeType)
                     if verdict == "P":
                         count += 1
                     
