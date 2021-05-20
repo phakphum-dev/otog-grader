@@ -124,7 +124,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
 
     #OGOGI Judge
     if judgeType == "ogogi":
-        thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath}"
+        thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath} {PROBLEM_PATH}/ {testCase}"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE)
         result,_ = proc.communicate()
         t = proc.returncode
