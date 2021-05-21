@@ -125,7 +125,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     #OGOGI Judge
     if judgeType == "ogogi":
         thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath} {PROBLEM_PATH}/ {testCase}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE)
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result,_ = proc.communicate()
         t = proc.returncode
         if os.path.exists("/proc/" + str(proc.pid)):
@@ -142,7 +142,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
 
         os.system(f"cp {userPath} ./output.txt")
         thisCmd = f"{PROBLEM_PATH}/binCheck {solPath} {PROBLEM_PATH}/{testCase}.in {srcPath}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)#RIP

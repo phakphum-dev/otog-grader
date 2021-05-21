@@ -158,5 +158,7 @@ Thumbs.db #thumbnail cache on Windows
 
 # End of https://www.toptal.com/developers/gitignore/api/python,vscode
 
+#DLC From Test Bruh
 .vscode
 src/Test.py
+src/source

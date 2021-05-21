@@ -159,6 +159,16 @@ def main():
 
         score = (count / int(testcase[-1])) * submission.mxScore
 
+        if "!" in result:#If it Judge Error
+            updateResult(
+                submission.id,
+                "Judge Error",
+                0,
+                0,
+                f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+            )
+            continue
+
         errmsg = fileRead("env/error.txt") or None
         updateResult(
             submission.id,
