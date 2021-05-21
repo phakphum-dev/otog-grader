@@ -99,7 +99,7 @@ def main():
         srcCodePath = createSourceCode(sourceCode, submission.language)
         
         # Compile
-        err = create(submission.userId, submission.language, srcCodePath)
+        err = create(submission.userId, submission.language, srcCodePath, submission.problemId)
 
         # If compile error
         if err:

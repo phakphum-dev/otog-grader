@@ -64,11 +64,22 @@ def createSourceCode(sourceCode, language):
     return srcPath
 
 
-def create(userId, language, sourcePath):
+def create(userId, language, sourcePath, problemId):
     if os.path.exists("env/out"):
         os.system("rm env/out")
     if language not in ["c", "cpp"]:
         return
+    
+    #Copy all of library file
+    if glob(f"source/{problemId}/*.cpp"):
+        os.system(f"cp ./source/{problemId}/*.cpp ./env/")
+    if glob(f"source/{problemId}/*.c"):
+        os.system(f"cp ./source/{problemId}/*.c ./env/")
+    if glob(f"source/{problemId}/*.h"):
+        os.system(f"cp ./source/{problemId}/*.h ./env/")
+    if Path("./env/check.cpp").is_file():
+        os.system(f"rm ./env/check.cpp")
+
     result = None
     compilecmd = langarr[language]["compile"].replace("[sourcePath]",sourcePath)
     os.system(compilecmd)
