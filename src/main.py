@@ -95,13 +95,11 @@ def main():
             )
             continue
         
-        # ? The name of the source file should change everyone when they submit
-        # ? cuz if they #include<temp.cpp> It will DOOM the server!
         # Write source string to file
         srcCodePath = createSourceCode(sourceCode, submission.language)
         
         # Compile
-        err = create(submission.userId, submission.language)
+        err = create(submission.userId, submission.language, srcCodePath)
 
         # If compile error
         if err:

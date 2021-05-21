@@ -5,6 +5,8 @@ import signal
 import time
 import subprocess
 from pathlib import Path
+from random import randint
+from glob import glob
 
 def fileRead(filename):
     try:
@@ -48,21 +50,27 @@ def error(t):
     return errCode
 
 
+def getRandomName(lenAl:int):
+    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    result = ""
+    for i in range(lenAl):result += alphabet[randint(0,len(alphabet)-1)]
+    return result
+
 def createSourceCode(sourceCode, language):
-    if os.path.exists("env/temp.*"):
-        os.system("rm env/temp.*")
-    srcPath = f"""env/temp.{langarr[language]["extension"]}"""
+    if glob("env/*"):
+        os.system("rm env/*")
+    srcPath = f"""./env/temp{getRandomName(5)}.{langarr[language]["extension"]}"""
     fileWrite(srcPath, sourceCode)
     return srcPath
 
 
-def create(userId, language):
+def create(userId, language, sourcePath):
     if os.path.exists("env/out"):
         os.system("rm env/out")
     if language not in ["c", "cpp"]:
         return
     result = None
-    compilecmd = langarr[language]["compile"]
+    compilecmd = langarr[language]["compile"].replace("[sourcePath]",sourcePath)
     os.system(compilecmd)
     if not os.path.exists("env/out"):
         result = "Compilation Error"
