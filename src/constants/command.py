@@ -12,5 +12,5 @@ langarr = {
         + ioeredirect,
         "execute": "env/out[inputfile]",
     },
-    "python": {"extension": "py", "execute": "python3 ./env/temp.py[inputfile]"},
+    "python": {"extension": "py", "execute": "python3 [sourcePath][inputfile]"},
 }

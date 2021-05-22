@@ -68,6 +68,10 @@ def create(userId, language, sourcePath, problemId):
     if os.path.exists("env/out"):
         os.system("rm env/out")
     if language not in ["c", "cpp"]:
+        if glob(f"source/{problemId}/*.py"):
+            os.system(f"cp ./source/{problemId}/*.py ./env/")
+        if Path("./env/interactive_script.py").is_file():
+            os.system(f"rm ./env/interactive_script.py")
         return
     
     #Copy all of library file
@@ -88,12 +92,13 @@ def create(userId, language, sourcePath, problemId):
     return result
 
 
-def execute(userId, problemId, testcase, timeLimit, memoryLimit, language):
+def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath):
     inputFile = (
         f" <source/{problemId}/{testcase}.in 1>env/output.txt 2>env/error.txt"
     )
     cmd = f"ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
     cmd = cmd.replace("[inputfile]", inputFile)
+    cmd = cmd.replace("[sourcePath]", sourcePath)
     if os.path.exists("env/error.txt"):
         os.system("chmod 775 env/error.txt")
     if os.path.exists("env/output.txt"):

@@ -135,6 +135,7 @@ def main():
                     ),  # Time limit
                     (submission.memoryLimit) * 1024,  # Memory limit (in kb)
                     submission.language,  # Language
+                    srcCodePath
                 )
 
                 userOutputPath = "env/output.txt"
