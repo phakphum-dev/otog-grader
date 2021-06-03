@@ -15,6 +15,7 @@ from handle import create, execute, error, getVerdict, getTypeJudge, createSourc
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
+MAX_ERROR_LINE = 500
 
 
 def main():
@@ -27,7 +28,7 @@ def main():
 
     while True:
         queue = getQueue()
-        if not queue :
+        if not queue:
             time.sleep(1)
             continue
 
@@ -94,12 +95,13 @@ def main():
                 "Cannot decode your submitted code. Check your submission.",
             )
             continue
-        
+
         # Write source string to file
         srcCodePath = createSourceCode(sourceCode, submission.language)
-        
+
         # Compile
-        err = create(submission.userId, submission.language, srcCodePath, submission.problemId)
+        err = create(submission.userId, submission.language,
+                     srcCodePath, submission.problemId)
 
         # If compile error
         if err:
@@ -108,6 +110,12 @@ def main():
                 errmsg = fileRead("env/error.txt") or None
             except:
                 errmsg = "Someting went wrong."
+
+            errLines = errmsg.split("\n")
+            if errmsg != None and len(errLines) > MAX_ERROR_LINE:
+                errmsg = "\n".join(
+                    errLines[:MAX_ERROR_LINE]) + "\n\nand more..."
+
             updateResult(submission.id, err, 0, 0, errmsg)
             continue
 
@@ -144,10 +152,11 @@ def main():
                 sumTime += elapse * 1000
                 errCode = error(t)
                 if not errCode:
-                    verdict = getVerdict(submission.problemId, userOutputPath, probOutputPath, x+1, srcCodePath, judgeType)
+                    verdict = getVerdict(
+                        submission.problemId, userOutputPath, probOutputPath, x+1, srcCodePath, judgeType)
                     if verdict == "P":
                         count += 1
-                    
+
                 elif errCode == "TLE":
                     verdict = "T"
                 else:
@@ -158,7 +167,7 @@ def main():
 
         score = (count / int(testcase[-1])) * submission.mxScore
 
-        if "!" in result:#If it Judge Error
+        if "!" in result:  # If it Judge Error
             updateResult(
                 submission.id,
                 "Judge Error",
@@ -181,7 +190,7 @@ def main():
             print(f"\n\t-> Time used: {int(sumTime)} ms.")
 
         print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Grading session completed.\n\t-> Waiting for new submission.")
-        
+
 
 if __name__ == "__main__":
     main()
