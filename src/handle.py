@@ -8,6 +8,7 @@ from pathlib import Path
 from random import randint
 from glob import glob
 
+
 def fileRead(filename):
     try:
         with codecs.open(filename, "r", "utf-8") as f:
@@ -30,7 +31,8 @@ def error(t):
         errCode = "SIGSEGV"
         fileWrite(
             "env/error.txt",
-            "SIGSEGV||Segmentation fault (core dumped)\n" + fileRead("env/error.txt"),
+            "SIGSEGV||Segmentation fault (core dumped)\n" +
+            fileRead("env/error.txt"),
         )
     elif t == 136:
         errCode = "SIGFPE"
@@ -40,7 +42,8 @@ def error(t):
         )
     elif t == 134:
         errCode = "SIGABRT"
-        fileWrite("env/error.txt", "SIGABRT||Aborted\n" + fileRead("env/error.txt"))
+        fileWrite("env/error.txt", "SIGABRT||Aborted\n" +
+                  fileRead("env/error.txt"))
     elif t != 0:
         errCode = "NZEC"
         fileWrite(
@@ -50,13 +53,18 @@ def error(t):
     return errCode
 
 
-def getRandomName(lenAl:int):
+def getRandomName(lenAl: int):
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     result = ""
-    for i in range(lenAl):result += alphabet[randint(0,len(alphabet)-1)]
+    for i in range(lenAl):
+        result += alphabet[randint(0, len(alphabet)-1)]
     return result
 
+
 def createSourceCode(sourceCode, language):
+    if glob("env/__pycache__"):
+        os.system("rm -r env/__pycache__")
+
     if glob("env/*"):
         os.system("rm env/*")
     srcPath = f"""./env/temp{getRandomName(5)}.{langarr[language]["extension"]}"""
@@ -73,8 +81,8 @@ def create(userId, language, sourcePath, problemId):
         if Path("./env/interactive_script.py").is_file():
             os.system(f"rm ./env/interactive_script.py")
         return
-    
-    #Copy all of library file
+
+    # Copy all of library file
     if glob(f"source/{problemId}/*.cpp"):
         os.system(f"cp ./source/{problemId}/*.cpp ./env/")
     if glob(f"source/{problemId}/*.c"):
@@ -85,7 +93,8 @@ def create(userId, language, sourcePath, problemId):
         os.system(f"rm ./env/check.cpp")
 
     result = None
-    compilecmd = langarr[language]["compile"].replace("[sourcePath]",sourcePath)
+    compilecmd = langarr[language]["compile"].replace(
+        "[sourcePath]", sourcePath)
     os.system(compilecmd)
     if not os.path.exists("env/out"):
         result = "Compilation Error"
@@ -130,6 +139,7 @@ def stdcmpfunc(fname1, fname2):
     except:
         return False
 
+
 def getTypeJudge(problemId):
     PROBLEM_PATH = f"./source/{problemId}"
     if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
@@ -139,26 +149,28 @@ def getTypeJudge(problemId):
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)#RIP
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
         return "check.cpp"
     return "standard"
+
 
 def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"
 
-    #OGOGI Judge
+    # OGOGI Judge
     if judgeType == "ogogi":
         thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath} {PROBLEM_PATH}/ {testCase}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result,_ = proc.communicate()
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result, _ = proc.communicate()
         t = proc.returncode
         if os.path.exists("/proc/" + str(proc.pid)):
-            #RIP
+            # RIP
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-        
+
         result = result.decode(encoding="utf8")
         if t != 0 or len(result.strip()) != 1:
-            return "!"#Judge Error... Bruh
+            return "!"  # Judge Error... Bruh
         return result.strip()
     elif judgeType == "check.cpp":
         if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
@@ -166,12 +178,12 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
 
         os.system(f"cp {userPath} ./output.txt")
         thisCmd = f"{PROBLEM_PATH}/binCheck {solPath} {PROBLEM_PATH}/{testCase}.in {srcPath}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)#RIP
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
         t = proc.returncode
-        
 
         result = fileRead(f"./grader_result.txt")
         try:
@@ -181,12 +193,8 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
             pass
 
         if t != 0 or len(result.strip()) != 1:
-            return "!"#Judge Error... Bruh
-        return result.strip().replace("W","-")
-    
+            return "!"  # Judge Error... Bruh
+        return result.strip().replace("W", "-")
 
-    #Standard Judge
+    # Standard Judge
     return stdcmpfunc(userPath, solPath) and "P" or "-"
-
-    
-

@@ -114,7 +114,7 @@ def main():
             errLines = errmsg.split("\n")
             if errmsg != None and len(errLines) > MAX_ERROR_LINE:
                 errmsg = "\n".join(
-                    errLines[:MAX_ERROR_LINE]) + "\n\nand more..."
+                    errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
 
             updateResult(submission.id, err, 0, 0, errmsg)
             continue
