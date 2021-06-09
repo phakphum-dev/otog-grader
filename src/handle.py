@@ -4,9 +4,9 @@ import os
 import signal
 import time
 import subprocess
+from os import path
 from pathlib import Path
 from random import randint
-from glob import glob
 
 
 def fileRead(filename):
@@ -61,36 +61,33 @@ def getRandomName(lenAl: int):
     return result
 
 
-def createSourceCode(sourceCode, language):
-    if glob("env/__pycache__"):
-        os.system("rm -r env/__pycache__")
+def prepareEnv(problemId):
 
-    if glob("env/*"):
-        os.system("rm env/*")
+    # clear env
+
+    if path.exists("env/__pycache__"):
+        os.system(f"rm -r env/__pycache__")
+
+    envFiles = os.listdir("env/")
+    for ffile in envFiles:
+        os.system(f"rm env/{ffile}")
+
+    # Grab custom script
+    problemFile = os.listdir(f"./source/{problemId}")
+    for ffile in problemFile:
+        if ffile.endswith(".c") or ffile.endswith(".h") \
+                or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
+                or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
+            os.system(f"cp ./source/{problemId}/{ffile} ./env/")
+
+
+def createSourceCode(sourceCode, language):
     srcPath = f"""./env/temp{getRandomName(5)}.{langarr[language]["extension"]}"""
     fileWrite(srcPath, sourceCode)
     return srcPath
 
 
 def create(userId, language, sourcePath, problemId):
-    if os.path.exists("env/out"):
-        os.system("rm env/out")
-    if language not in ["c", "cpp"]:
-        if glob(f"source/{problemId}/*.py"):
-            os.system(f"cp ./source/{problemId}/*.py ./env/")
-        if Path("./env/interactive_script.py").is_file():
-            os.system(f"rm ./env/interactive_script.py")
-        return
-
-    # Copy all of library file
-    if glob(f"source/{problemId}/*.cpp"):
-        os.system(f"cp ./source/{problemId}/*.cpp ./env/")
-    if glob(f"source/{problemId}/*.c"):
-        os.system(f"cp ./source/{problemId}/*.c ./env/")
-    if glob(f"source/{problemId}/*.h"):
-        os.system(f"cp ./source/{problemId}/*.h ./env/")
-    if Path("./env/check.cpp").is_file():
-        os.system(f"rm ./env/check.cpp")
 
     result = None
     compilecmd = langarr[language]["compile"].replace(

@@ -11,7 +11,7 @@ from database import (
     closeConnection,
     testConnection,
 )
-from handle import create, execute, error, getVerdict, getTypeJudge, createSourceCode, fileRead
+from handle import *
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
@@ -95,6 +95,8 @@ def main():
                 "Cannot decode your submitted code. Check your submission.",
             )
             continue
+
+        prepareEnv(submission.problemId)
 
         # Write source string to file
         srcCodePath = createSourceCode(sourceCode, submission.language)
