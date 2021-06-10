@@ -15,7 +15,7 @@ from handle import *
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
-MAX_ERROR_LINE = 500
+MAX_ERROR_LINE = 200
 
 
 def main():
