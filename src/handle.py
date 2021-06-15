@@ -89,10 +89,14 @@ def createSourceCode(sourceCode, language):
 
 def create(userId, language, sourcePath, problemId):
 
+    if language == "python":
+        return None
+
     result = None
     compilecmd = langarr[language]["compile"].replace(
         "[sourcePath]", sourcePath)
     os.system(compilecmd)
+
     if not os.path.exists("env/out"):
         result = "Compilation Error"
     return result
