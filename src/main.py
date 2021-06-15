@@ -15,7 +15,6 @@ from handle import *
 from DTO import submissionDTO
 
 PYTIMEFACTOR = 25
-MAX_ERROR_LINE = 200
 
 
 def main():
@@ -114,10 +113,7 @@ def main():
                 errmsg = "Someting went wrong."
 
             if errmsg != None:
-                errLines = errmsg.split("\n")
-                if len(errLines) > MAX_ERROR_LINE:
-                    errmsg = "\n".join(
-                        errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
+                errmsg = errMsgHandle(errmsg)
 
             updateResult(submission.id, err, 0, 0, errmsg)
             continue

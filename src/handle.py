@@ -8,6 +8,8 @@ from os import path
 from pathlib import Path
 from random import randint
 
+MAX_ERROR_LINE = 200
+
 
 def fileRead(filename):
     try:
@@ -89,17 +91,31 @@ def createSourceCode(sourceCode, language):
 
 def create(userId, language, sourcePath, problemId):
 
-    if language == "python":
-        return None
-
     result = None
     compilecmd = langarr[language]["compile"].replace(
         "[sourcePath]", sourcePath)
     os.system(compilecmd)
 
-    if not os.path.exists("env/out"):
-        result = "Compilation Error"
+    if language == "python":
+        if os.path.exists("env/error.txt") and fileRead("env/error.txt").strip():
+            return "Compilation Error"
+    else:
+        if not os.path.exists("env/out"):
+            return "Compilation Error"
     return result
+
+
+def errMsgHandle(errMes: str) -> str:
+    # Python
+    if errMes.find("During handling of the above exception, another exception occurred:") != -1:
+        errMes = errMes[:errMes.find(
+            "During handling of the above exception, another exception occurred:")]
+
+    errLines = errMes.split("\n")
+    if len(errLines) > MAX_ERROR_LINE:
+        errMes = "\n".join(
+            errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
+    return errMes
 
 
 def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath):
