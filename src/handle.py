@@ -72,20 +72,9 @@ def prepareEnv(problemId):
 
     # clear env
 
-    if path.exists("env/__pycache__"):
-        os.system(f"rm -r env/__pycache__")
-
     envFiles = os.listdir("env/")
     for ffile in envFiles:
         os.system(f"rm env/{ffile}")
-
-    # Grab custom script
-    problemFile = os.listdir(f"./source/{problemId}")
-    for ffile in problemFile:
-        if ffile.endswith(".c") or ffile.endswith(".h") \
-                or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
-                or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
-            os.system(f"cp ./source/{problemId}/{ffile} ./env/")
 
 
 def createSourceCode(sourceCode, language):
@@ -101,20 +90,12 @@ def create(userId, language, sourcePath, problemId):
         "[sourcePath]", sourcePath)
     os.system(compilecmd)
 
-    if language == "python":
-        if os.path.exists("env/error.txt") and fileRead("env/error.txt").strip():
-            return "Compilation Error"
-    else:
-        if not os.path.exists("env/out"):
-            return "Compilation Error"
+    if not os.path.exists("env/out"):
+        return "Compilation Error"
     return result
 
 
 def errMsgHandle(errMes: str) -> str:
-    # Python
-    if errMes.find("During handling of the above exception, another exception occurred:") != -1:
-        errMes = errMes[:errMes.find(
-            "During handling of the above exception, another exception occurred:")]
 
     errLines = errMes.split("\n")
     if len(errLines) > MAX_ERROR_LINE:
@@ -163,60 +144,9 @@ def stdcmpfunc(fname1, fname2):
 
 
 def getTypeJudge(problemId):
-    PROBLEM_PATH = f"./source/{problemId}"
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
-        return "ogogi"
-    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
-        proc.communicate()
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        return "check.cpp"
     return "standard"
 
 
 def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
-    PROBLEM_PATH = f"./source/{problemId}"
-
-    # OGOGI Judge
-    if judgeType == "ogogi":
-        thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath} {PROBLEM_PATH}/ {testCase}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result, _ = proc.communicate()
-        t = proc.returncode
-        if os.path.exists("/proc/" + str(proc.pid)):
-            # RIP
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-
-        result = result.decode(encoding="utf8")
-        if t != 0 or len(result.strip()) != 1:
-            return "!"  # Judge Error... Bruh
-        return result.strip()
-    elif judgeType == "check.cpp":
-        if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
-            return "!"
-
-        os.system(f"cp {userPath} ./output.txt")
-        thisCmd = f"{PROBLEM_PATH}/binCheck {solPath} {PROBLEM_PATH}/{testCase}.in {srcPath}"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc.communicate()
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        t = proc.returncode
-
-        result = fileRead(f"./grader_result.txt")
-        try:
-            os.system("rm ./output.txt")
-            os.system("rm ./grader_result.txt")
-        except:
-            pass
-
-        if t != 0 or len(result.strip()) != 1:
-            return "!"  # Judge Error... Bruh
-        return result.strip().replace("W", "-")
-
     # Standard Judge
     return stdcmpfunc(userPath, solPath) and "P" or "-"
