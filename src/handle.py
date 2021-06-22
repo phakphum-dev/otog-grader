@@ -11,6 +11,11 @@ from random import randint
 MAX_ERROR_LINE = 200
 
 
+def testEnv():
+    if not path.exists("env"):
+        os.mkdir("env")
+
+
 def fileRead(filename):
     try:
         with codecs.open(filename, "r", "utf-8") as f:

@@ -25,6 +25,8 @@ def main():
         exit(1)
     print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
 
+    testEnv()
+
     while True:
         queue = getQueue()
         if not queue:
