@@ -21,19 +21,12 @@ def socketTestConnect():
         print("BigConfig.ini not found...")
         exit(1)
 
-    try:
-        URL = configINI["socket"]["URL"]
-        secret = configINI["socket"]["secret"]
-        keySocket = configINI["socket"]["keySocket"]
-    except:
-        print("BigConfig.ini wrong format or missing...")
-        print(
-            'EG.\n[socket]\nURL = "localhost:69"\nsecret = "xxxxxxxxxxxx"\nkeySocket = "dasasdasd"')
-
+    URL = configINI["socket"]["URL"]
+    secret = configINI["socket"]["secret"]
+    keySocket = configINI["socket"]["keySocket"]
     try:
         print("Connect to server...")
-        time.sleep(2)
-        socketIO.connect(URL, header={'key': keySocket}, auth=secret)
+        socketIO.connect(URL, headers = {"key" : keySocket}, auth = {"token" : secret})
     except:
         print(f"Can't connect socket IO to {URL}...")
         exit(1)
@@ -57,7 +50,7 @@ def updateRunningInCase(resultId, case, userID):
     val = (verdictText, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
-    socketIO.emit("garger-to-server",
+    socketIO.emit("grader-to-server",
                   [resultId, verdictText, 0, 0, "grading", "", userID])
 
 
@@ -69,7 +62,7 @@ def updateResult(resultId, result, score, sumTime, errmsg, userID):
            errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
-    socketIO.emit("garger-to-server",
+    socketIO.emit("grader-to-server",
                   [resultId, result, score, sumTime, status, errmsg, userID])
 
 

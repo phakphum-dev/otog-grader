@@ -1,0 +1,12 @@
+[mySQL]
+host =
+port =
+user =
+passwd =
+database =
+
+[socket]
+URL =
+secret =
+keySocket =
+

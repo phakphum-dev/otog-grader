@@ -1,7 +1,18 @@
+import configparser
+
+configINI = configparser.ConfigParser()
+try:
+    configINI.read("./BigConfig.ini")
+except:
+    print("BigConfig.ini not found...")
+    exit(1)
+
+
+
 dbConfig = {
-    "host": "127.0.0.1",
-    "port": "8888",
-    "user": "root",
-    "passwd": "0000",
-    "database": "otog",
+    "host": configINI["mySQL"]["host"],
+    "port": configINI["mySQL"]["port"],
+    "user": configINI["mySQL"]["user"],
+    "passwd": configINI["mySQL"]["passwd"],
+    "database": configINI["mySQL"]["database"],
 }

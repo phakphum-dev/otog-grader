@@ -19,12 +19,15 @@ PYTIMEFACTOR = 25
 
 
 def main():
+    
     try:
         testConnection()
-    except:
+    except e:
         print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
+        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] {e}")
         exit(1)
 
+    print(f"[ { bcolors.BOLD}SQL{bcolors.RESET} ] SQL Connected.")
     socketTestConnect()
 
     print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
