@@ -2,9 +2,10 @@ from .dbInit import DB
 from datetime import datetime
 import time
 import socketio
+import configparser
 
 db = DB()
-bigSocket = socketio.Client()
+socketIO = socketio.Client()
 
 
 def testConnection():
@@ -12,11 +13,27 @@ def testConnection():
 
 
 def socketTestConnect():
-    URL = '192.168.0.7:8000'
+
+    configINI = configparser.ConfigParser()
+    try:
+        configINI.read("./BigConfig.ini")
+    except:
+        print("BigConfig.ini not found...")
+        exit(1)
+
+    try:
+        URL = configINI["socket"]["URL"]
+        secret = configINI["socket"]["secret"]
+        keySocket = configINI["socket"]["keySocket"]
+    except:
+        print("BigConfig.ini wrong format or missing...")
+        print(
+            'EG.\n[socket]\nURL = "localhost:69"\nsecret = "xxxxxxxxxxxx"\nkeySocket = "dasasdasd"')
+
     try:
         print("Connect to server...")
         time.sleep(2)
-        bigSocket.connect(URL)
+        socketIO.connect(URL, header={'key': keySocket}, auth=secret)
     except:
         print(f"Can't connect socket IO to {URL}...")
         exit(1)
@@ -34,11 +51,14 @@ def getQueue():
     return cur.fetchone()
 
 
-def updateRunningInCase(resultId, case):
+def updateRunningInCase(resultId, case, userID):
     sql = "UPDATE submission SET result = %s, updateDate = %s, status = 'grading' WHERE id = %s"
-    val = (f"Running in testcase {case+1}", datetime.now(), str(resultId))
+    verdictText = f"Running in testcase {case+1}"
+    val = (verdictText, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
+    socketIO.emit("garger-to-server",
+                  [resultId, verdictText, 0, 0, "grading", "", userID])
 
 
 def updateResult(resultId, result, score, sumTime, errmsg, userID):
@@ -49,8 +69,8 @@ def updateResult(resultId, result, score, sumTime, errmsg, userID):
            errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
-    bigSocket.emit("garger-to-server",
-                   [resultId, result, score, sumTime, errmsg, userID])
+    socketIO.emit("garger-to-server",
+                  [resultId, result, score, sumTime, status, errmsg, userID])
 
 
 def closeConnection():

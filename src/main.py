@@ -171,7 +171,7 @@ def main():
                     verdict = "X"
                 result += verdict
                 print(verdict, end="", flush=True)
-                updateRunningInCase(submission.id, x)
+                updateRunningInCase(submission.id, x, submission.userId)
 
         score = (count / int(testcase[-1])) * submission.mxScore
 
