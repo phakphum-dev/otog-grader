@@ -8,6 +8,7 @@ from database import (
     getQueue,
     updateRunningInCase,
     updateResult,
+    socketTestConnect,
     closeConnection,
     testConnection,
 )
@@ -23,6 +24,9 @@ def main():
     except:
         print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
         exit(1)
+
+    socketTestConnect()
+
     print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
 
     testEnv()
@@ -65,6 +69,7 @@ def main():
                 0,
                 0,
                 "Number of testcase does not specified. Flame admins, kiddos. :(",
+                submission.userId
             )
             continue
 
@@ -77,6 +82,7 @@ def main():
                 0,
                 0,
                 "Admins have not yet upload the testcases. Go ahead and flame them.",
+                submission.userId
             )
             continue
 
@@ -94,6 +100,7 @@ def main():
                 0,
                 0,
                 "Cannot decode your submitted code. Check your submission.",
+                submission.userId
             )
             continue
 
@@ -117,7 +124,7 @@ def main():
             if errmsg != None:
                 errmsg = errMsgHandle(errmsg)
 
-            updateResult(submission.id, err, 0, 0, errmsg)
+            updateResult(submission.id, err, 0, 0, errmsg, submission.userId)
             continue
 
         # Split testcase into subtasks if available
@@ -175,6 +182,7 @@ def main():
                 0,
                 0,
                 f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+                submission.userId
             )
             continue
 
@@ -185,6 +193,7 @@ def main():
             score,
             sumTime // ((PYTIMEFACTOR if submission.language == "python" else 1)),
             errmsg,
+            submission.userId
         )
 
         if not err:

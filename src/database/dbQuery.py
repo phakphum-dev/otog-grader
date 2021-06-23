@@ -1,11 +1,26 @@
 from .dbInit import DB
 from datetime import datetime
+import time
+import socketio
 
 db = DB()
+bigSocket = socketio.Client()
 
 
 def testConnection():
     db.connect()
+
+
+def socketTestConnect():
+    try:
+        print("Connect to server...")
+        time.sleep(2)
+        bigSocket.connect('192.168.0.7:8000')
+    except:
+        print("Can't connect socket IO...")
+        exit(1)
+    else:
+        print("Connect socket success fully!")
 
 
 def getQueue():
@@ -25,13 +40,16 @@ def updateRunningInCase(resultId, case):
     db.update()
 
 
-def updateResult(resultId, result, score, sumTime, errmsg):
+def updateResult(resultId, result, score, sumTime, errmsg, userID):
     sql = """UPDATE submission SET result = %s, score = %s, timeUsed = %s, 
             status = %s, errmsg = %s, updateDate = %s WHERE id = %s"""
     status = "accept" if all(c in "P[]" for c in result) else "reject"
-    val = (result, score, int(sumTime), status, errmsg, datetime.now(), str(resultId))
+    val = (result, score, int(sumTime), status,
+           errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
+    bigSocket.emit("garger-to-server",
+                   [resultId, result, score, sumTime, errmsg, userID])
 
 
 def closeConnection():
