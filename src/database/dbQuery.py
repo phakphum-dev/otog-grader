@@ -12,12 +12,13 @@ def testConnection():
 
 
 def socketTestConnect():
+    URL = '192.168.0.7:8000'
     try:
         print("Connect to server...")
         time.sleep(2)
-        bigSocket.connect('192.168.0.7:8000')
+        bigSocket.connect(URL)
     except:
-        print("Can't connect socket IO...")
+        print(f"Can't connect socket IO to {URL}...")
         exit(1)
     else:
         print("Connect socket success fully!")
