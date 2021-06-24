@@ -32,10 +32,12 @@ def main(option='-C'):
         exit(1)
 
     print(f"[ { bcolors.BOLD}SQL{bcolors.RESET} ] SQL Connected.")
+
+    socketTestConnect()
+
     print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
 
     if(option == '-S'):
-        socketTestConnect()
         sio = getsocketIO()
 
         @sio.on('grade-this-id')
