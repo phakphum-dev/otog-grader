@@ -9,7 +9,14 @@ socketIO = socketio.Client()
 
 
 def testConnection():
-    db.connect()
+    if(not db.conn):
+        db.connect()
+    else:
+        print("[ MYSQL ] connect already.")
+
+
+def getsocketIO():
+    return socketIO
 
 
 def socketTestConnect():
@@ -26,7 +33,8 @@ def socketTestConnect():
     keySocket = configINI["socket"]["keySocket"]
     try:
         print("Connect to server...")
-        socketIO.connect(URL, headers = {"key" : keySocket}, auth = {"token" : secret})
+        socketIO.connect(URL, headers={"key": keySocket}, auth={
+                         "token": secret})
     except:
         print(f"Can't connect socket IO to {URL}...")
         exit(1)
@@ -44,26 +52,38 @@ def getQueue():
     return cur.fetchone()
 
 
+def getQueueById(submissionId):
+    db.update()
+    cur = db.query(
+        """SELECT * FROM submission as S
+        LEFT JOIN problem as B ON S.problemId = B.id
+        WHERE S.id = %s""", (str(submissionId),))
+    return cur.fetchone()
+
+
 def updateRunningInCase(resultId, case, userID):
     sql = "UPDATE submission SET result = %s, updateDate = %s, status = 'grading' WHERE id = %s"
     verdictText = f"Running in testcase {case+1}"
     val = (verdictText, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
-    socketIO.emit("grader-to-server",
-                  [resultId, verdictText, 0, 0, "grading", "", userID])
+    if socketIO.connected:
+        socketIO.emit("grader-to-server",
+                      [resultId, verdictText, 0, 0, "grading", "", userID])
 
 
 def updateResult(resultId, result, score, sumTime, errmsg, userID):
-    sql = """UPDATE submission SET result = %s, score = %s, timeUsed = %s, 
+    sql = """UPDATE submission SET result = %s, score = %s, timeUsed = %s,
             status = %s, errmsg = %s, updateDate = %s WHERE id = %s"""
     status = "accept" if all(c in "P[]" for c in result) else "reject"
     val = (result, score, int(sumTime), status,
            errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)
     db.update()
-    socketIO.emit("grader-to-server",
-                  [resultId, result, score, sumTime, status, errmsg, userID])
+    if socketIO.connected:
+        socketIO.emit("finish-sub")
+        socketIO.emit("grader-to-server",
+                      [resultId, result, score, sumTime, status, errmsg, userID])
 
 
 def closeConnection():
