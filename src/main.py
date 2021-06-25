@@ -11,9 +11,9 @@ from database import (
     updateResult,
     socketTestConnect,
     closeConnection,
-    testConnection,
+    DBConnect,
 )
-from database.dbQuery import getQueueById, getsocketIO
+from database.dbQuery import DBDisconnect, getQueueById, getsocketIO, testDBConnection
 from handle import *
 from DTO import submissionDTO
 
@@ -24,14 +24,7 @@ def main(option='-C'):
 
     testEnv()
 
-    try:
-        testConnection()
-    except Exception as e:
-        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
-        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] {e}")
-        exit(1)
-
-    print(f"[ { bcolors.BOLD}SQL{bcolors.RESET} ] SQL Connected.")
+    testDBConnection()
 
     socketTestConnect()
 
@@ -48,11 +41,14 @@ def main(option='-C'):
             judge(queue)
     elif (option == '-C'):
         while True:
+            DBConnect()
             queue = getQueue()
             if not queue:
+                DBDisconnect()
                 time.sleep(1)
                 continue
             judge(queue)
+            DBDisconnect()
 
 
 # If there is new payload

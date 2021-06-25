@@ -1,3 +1,4 @@
+from constants.colors import bcolors
 from .dbInit import DB
 from datetime import datetime
 import time
@@ -8,11 +9,40 @@ db = DB()
 socketIO = socketio.Client()
 
 
-def testConnection():
-    if(not db.conn):
+def testDBConnection():
+    try:
         db.connect()
-    else:
-        print("[ MYSQL ] connect already.")
+    except Exception as e:
+        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
+        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] {e}")
+        exit(1)
+    print(
+        f"{bcolors.OKGREEN}[ MYSQL ] Connect MYSQL success fully!.{bcolors.RESET}")
+    DBDisconnect()
+
+
+def DBConnect():
+    try:
+        db.connect()
+    except:
+        for i in range(5):
+            try:
+                print(
+                    f"{bcolors.WARNING}[ MYSQL ] Connection failed, retrying in ({i+1}) secs...{bcolors.RESET}"
+                )
+                time.sleep(i + 1)
+                db.connect()
+                print(
+                    f"{bcolors.OKGREEN}[ MYSQL ] Connect MYSQL success fully!.{bcolors.RESET}")
+                return
+            except:
+                pass
+        print(f"{bcolors.FAIL}[ MYSQL ] Connection Lost.{bcolors.RESET}")
+        exit(1)
+
+
+def DBDisconnect():
+    db.disconnect()
 
 
 def getsocketIO():
@@ -32,14 +62,15 @@ def socketTestConnect():
     secret = configINI["socket"]["secret"]
     keySocket = configINI["socket"]["keySocket"]
     try:
-        print("Connect to server...")
         socketIO.connect(URL, headers={"key": keySocket}, auth={
                          "token": secret})
     except:
-        print(f"Can't connect socket IO to {URL}...")
+        print(
+            f"[ { bcolors.BOLD}SOCKET{bcolors.RESET} ] Can't connect socket IO to {URL}...")
         exit(1)
     else:
-        print("Connect socket success fully!")
+        print(
+            f"[ { bcolors.BOLD}SOCKET{bcolors.RESET} ] Connect socket success fully!")
 
 
 def getQueue():
@@ -49,7 +80,9 @@ def getQueue():
             LEFT JOIN problem as B ON S.problemId = B.id
             WHERE status = 'waiting' ORDER BY creationDate"""
     )
-    return cur.fetchone()
+    data = cur.fetchone()
+    cur.close()
+    return data
 
 
 def getQueueById(submissionId):
@@ -58,7 +91,9 @@ def getQueueById(submissionId):
         """SELECT * FROM submission as S
         LEFT JOIN problem as B ON S.problemId = B.id
         WHERE S.id = %s""", (str(submissionId),))
-    return cur.fetchone()
+    data = cur.fetchone()
+    cur.close()
+    return data
 
 
 def updateRunningInCase(resultId, case, userID):
@@ -66,6 +101,7 @@ def updateRunningInCase(resultId, case, userID):
     verdictText = f"Running in testcase {case+1}"
     val = (verdictText, datetime.now(), str(resultId))
     cur = db.query(sql, val)
+    cur.close()
     db.update()
     if socketIO.connected:
         socketIO.emit("grader-to-server",
@@ -79,6 +115,7 @@ def updateResult(resultId, result, score, sumTime, errmsg, userID):
     val = (result, score, int(sumTime), status,
            errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)
+    cur.close()
     db.update()
     if socketIO.connected:
         socketIO.emit("finish-sub")
