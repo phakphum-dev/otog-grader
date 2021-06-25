@@ -74,11 +74,22 @@ def socketTestConnect():
 
 
 def getQueue():
+
+    configINI = configparser.ConfigParser()
+    try:
+        configINI.read("./BigConfig.ini")
+    except:
+        print("BigConfig.ini not found...")
+        exit(1)
+
+    allGrade = configINI["LoadBalance"]["AllLoadCount"]
+    thisGrade = configINI["LoadBalance"]["ThisLoad"]
+
     db.update()
     cur = db.query(
-        """SELECT * FROM submission as S
+        f"""SELECT * FROM submission as S
             LEFT JOIN problem as B ON S.problemId = B.id
-            WHERE status = 'waiting' ORDER BY creationDate"""
+            WHERE status = 'waiting' AND mod(S.id,{allGrade}) = {thisGrade} ORDER BY creationDate"""
     )
     data = cur.fetchone()
     cur.close()

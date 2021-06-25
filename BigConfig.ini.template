@@ -10,3 +10,7 @@ URL =
 secret =
 keySocket =
 
+[LoadBalance]
+AllLoadCount = 
+ThisLoad = 
+
