@@ -201,13 +201,12 @@ def judge(queue):
         )
         return
 
-    errmsg = fileRead("env/error.txt") or None
     updateResult(
         submission.id,
         result,
         score,
         sumTime // ((PYTIMEFACTOR if submission.language == "python" else 1)),
-        errmsg,
+        None,
         submission.userId
     )
 
