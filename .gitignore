@@ -162,3 +162,6 @@ Thumbs.db #thumbnail cache on Windows
 .vscode
 src/Test.py
 src/source
+src/MiniDB.ini
+src/testCodes
+src/RunTest.sh

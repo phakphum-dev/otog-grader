@@ -4,6 +4,7 @@ import os
 import signal
 import time
 import subprocess
+import yaml
 from os import path
 from pathlib import Path
 from random import randint
@@ -96,9 +97,37 @@ def createSourceCode(sourceCode, language):
 
 def create(userId, language, sourcePath, problemId):
 
+    commandData = None
+    compilecmd = None
+
+    if os.path.exists(f"source/{problemId}/command.yaml"):
+        try:
+            with open(f"source/{problemId}/command.yaml", "r") as f:
+                command = f.read()
+            commandData = yaml.load(command, Loader=yaml.FullLoader)
+        except:
+            print(
+                f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] Can't read command.yaml")
+
+    if type(commandData) == type(dict()):
+        if language in commandData:
+            if "compile" in commandData[language]:
+                compilecmd = commandData[language]["compile"].replace(
+                    "[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
+            else:
+                print(
+                    f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] 'compile' not found in lang {language}")
+        else:
+            print(
+                f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] {language} not found in command.yaml")
+
     result = None
-    compilecmd = langarr[language]["compile"].replace(
-        "[sourcePath]", sourcePath)
+    if compilecmd == None:
+        compilecmd = langarr[language]["compile"].replace(
+            "[sourcePath]", sourcePath)
+    else:
+        print(
+            f"[ {bcolors.HEADER}COMPILE{bcolors.RESET} ] use command from command.yaml")
     os.system(compilecmd)
 
     if language == "python":
