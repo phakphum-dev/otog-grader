@@ -2,6 +2,7 @@ from pathlib import Path
 import time
 from datetime import datetime
 import tabulate
+import subtask
 
 from constants import bcolors, langarr
 from database import (
@@ -151,8 +152,6 @@ def startJudge(queueData):
             print(verdict, end="", flush=True)
             updateRunningInCase(submission.id, x)
 
-    score = (count / int(testcase[-1])) * submission.mxScore
-
     if "!" in result:  # If it Judge Error
         updateResult(
             submission.id,
@@ -162,6 +161,41 @@ def startJudge(queueData):
             f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
         )
         return
+
+    score = -1
+    print()
+    if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
+        subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
+        mxCase, subData = subtask.compile(subContent)
+        if mxCase == -1:
+            print(
+                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Subtask error : {subData}")
+            updateResult(
+                submission.id,
+                "Judge Error",
+                0,
+                0,
+                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subData}",
+            )
+            return
+        elif len(result) != mxCase:
+            print(
+                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Expect {mxCase} cases got {len(result)}({result})")
+            updateResult(
+                submission.id,
+                "Judge Error",
+                0,
+                0,
+                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\nExpect {mxCase} cases got {len(result)}",
+            )
+            return
+        else:
+            print(f"[ {bcolors.HEADER}SUBTASK{bcolors.RESET} ] use custom subtask")
+            result, score, mxScore = subtask.finalResult(result, subData)
+            score = score * submission.mxScore / mxScore
+            print("\t-> Final Result:", result)
+    if score == -1:
+        score = (count / int(testcase[-1])) * submission.mxScore
 
     updateResult(
         submission.id,
