@@ -117,13 +117,84 @@ def startJudge(queueData):
 
     print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] use {judgeType} Judge...")
     print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] Runtime process:")
+
+    if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
+        subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
+        mxCase, bigSubdata = subtask.compile(subContent)
+        if mxCase == -1:
+            print(
+                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Subtask error : {bigSubdata}")
+            updateResult(
+                submission.id,
+                "Judge Error",
+                0,
+                0,
+                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subData}",
+            )
+            return
+        elif testcase != mxCase:
+            print(
+                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Expect {mxCase} cases but got {testcase}")
+            updateResult(
+                submission.id,
+                "Judge Error",
+                0,
+                0,
+                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\nExpect {mxCase} cases but got {testcase}",
+            )
+            return
+        else:
+            print(f"[ {bcolors.HEADER}SUBTASK{bcolors.RESET} ] use custom subtask")
+    else:
+        mxCase, bigSubdata = testcase, ([[i for i in range(
+            1, testcase + 1)]], {1: {"group": False, "score": testcase}})
+
     print("\t-> Result: ", end="", flush=True)
-    for sub in testcase:
-        for x in range(sub):
+    testcases, subData = bigSubdata
+    seqCase = subtask.getSeq(subData)
+    isPass = [False for i in range(len(seqCase) + 5)]
+    score = 0
+    mxScore = 0
+    result = ""
+
+    for testInd in seqCase:
+        if len(seqCase) != 1:
+            if "group" in subData[testInd] and subData[testInd]["group"]:
+                result += "["
+                print("[", end="", flush=True)
+            else:
+                result += "("
+                print("(", end="", flush=True)
+        correct = 0
+        isSkiped = False
+        # Check if it prerequisite when it it contest
+        if submission.contestId and "require" in subData[testInd]:
+            allReq = []
+            if type(subData[testInd]["require"]) == type(69) and subData[testInd]["require"] <= len(testcases):
+                allReq.append(subData[testInd]["require"])
+            elif type(subData[testInd]["require"]) == type([]):
+                for req in subData[testInd]["require"]:
+                    if type(req) == type(69) and req <= len(testcases):
+                        allReq.append(req)
+            for req in allReq:
+                if not isPass[req]:
+                    isSkiped = True
+            if isSkiped:
+                allCrt = len(testcases[testInd-1])
+                correct = 0
+                print("S"*allCrt, end="", flush=True)
+                result += "S"*allCrt
+                isPass[testInd] = False
+
+        for x in testcases[testInd-1]:
+
+            if isSkiped:
+                break
+
             t, elapse = execute(
                 submission.userId,  # User ID
                 submission.problemId,  # Problem ID
-                x + 1,  # Index of testcase
+                x,  # Index of testcase
                 submission.timeLimit
                 * (
                     PYTIMEFACTOR if submission.language == "python" else 1
@@ -134,15 +205,15 @@ def startJudge(queueData):
             )
 
             userOutputPath = "env/output.txt"
-            probOutputPath = f"./source/{submission.problemId}/{x+1}.sol"
+            probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
             sumTime += elapse * 1000
             errCode = error(t)
             if not errCode:
                 verdict = getVerdict(
-                    submission.problemId, userOutputPath, probOutputPath, x+1, srcCodePath, judgeType)
+                    submission.problemId, userOutputPath, probOutputPath, x, srcCodePath, judgeType)
                 if verdict == "P":
-                    count += 1
+                    correct += 1
 
             elif errCode == "TLE":
                 verdict = "T"
@@ -152,7 +223,31 @@ def startJudge(queueData):
             print(verdict, end="", flush=True)
             updateRunningInCase(submission.id, x)
 
-    if "!" in result:  # If it Judge Error
+        # calculate score here
+        allCorrect = len(testcases[testInd-1])
+        if "group" in subData[testInd] and subData[testInd]["group"]:
+            if correct != allCorrect:
+                correct = 0
+
+        isPass[testInd] = (correct == allCorrect)
+
+        if "score" in subData[testInd]:
+            score += correct * \
+                float(subData[testInd]["score"]) / allCorrect
+            mxScore += float(subData[testInd]["score"])
+        else:
+            score += correct
+            mxScore += allCorrect
+
+        if len(seqCase) != 1:
+            if "group" in subData[testInd] and subData[testInd]["group"]:
+                result += "]"
+                print("]", end="", flush=True)
+            else:
+                result += ")"
+                print(")", end="", flush=True)
+
+    if "!" in result:
         updateResult(
             submission.id,
             "Judge Error",
@@ -162,45 +257,13 @@ def startJudge(queueData):
         )
         return
 
-    score = -1
-    print()
-    if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
-        subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        mxCase, subData = subtask.compile(subContent)
-        if mxCase == -1:
-            print(
-                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Subtask error : {subData}")
-            updateResult(
-                submission.id,
-                "Judge Error",
-                0,
-                0,
-                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subData}",
-            )
-            return
-        elif len(result) != mxCase:
-            print(
-                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Expect {mxCase} cases got {len(result)}({result})")
-            updateResult(
-                submission.id,
-                "Judge Error",
-                0,
-                0,
-                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\nExpect {mxCase} cases got {len(result)}",
-            )
-            return
-        else:
-            print(f"[ {bcolors.HEADER}SUBTASK{bcolors.RESET} ] use custom subtask")
-            result, score, mxScore = subtask.finalResult(result, subData)
-            score = score * submission.mxScore / mxScore
-            print("\t-> Final Result:", result)
-    if score == -1:
-        score = (count / int(testcase[-1])) * submission.mxScore
+    finalScore = score * submission.mxScore / mxScore
 
+    errmsg = fileRead("env/error.txt") or None
     updateResult(
         submission.id,
         result,
-        score,
+        finalScore,
         sumTime // ((PYTIMEFACTOR if submission.language == "python" else 1)),
         None,
     )

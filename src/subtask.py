@@ -64,6 +64,49 @@ def validRequire(data):
         state[zero] = True
 
 
+def getSeq(data):
+    n = len(data)
+    graph = [[] for i in range(n+3)]
+    inOrder = [0 for i in range(n+3)]
+    state = [False for i in range(n+3)]
+
+    for i in range(n):
+        if "require" in data[i+1]:
+            if type(data[i+1]["require"]) == type(69) and data[i+1]["require"] <= n:
+                graph[data[i+1]["require"]].append(i+1)
+                inOrder[i+1] += 1
+            elif type(data[i+1]["require"]) == type(list()):
+                for x in data[i+1]["require"]:
+                    if type(x) == type(69) and x <= n:
+                        graph[x].append(i+1)
+                        inOrder[i+1] += 1
+    seq = []
+
+    while True:
+        zero = -1
+        isCom = True
+
+        for i in range(n):
+            if inOrder[i+1] == 0 and state[i+1] == False:
+                zero = i+1
+            elif inOrder[i+1] != 0:
+                isCom = False
+
+        if isCom:
+            break
+
+        for nextNode in graph[zero]:
+            inOrder[nextNode] -= 1
+        state[zero] = True
+        seq.append(zero)
+
+    for i in range(n):
+        if state[i+1] == False:
+            seq.append(i+1)
+
+    return seq
+
+
 def compile(content: str):
     content = content.strip()
     content = content.replace("true", "True").replace("false", "False")
