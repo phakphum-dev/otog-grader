@@ -1,7 +1,8 @@
+import traceback
 import mysql.connector
+
+from constants.colors import colors
 from .dbConfig import dbConfig
-from constants import bcolors
-import time
 
 
 def init():
@@ -13,7 +14,7 @@ class DB:
 
     def connect(self):
         self.conn = init()
-        print(f"{bcolors.OKGREEN}[ MYSQL ] Connected successfully.{bcolors.RESET}")
+        return
 
     def disconnect(self):
         self.conn.close()
@@ -23,20 +24,12 @@ class DB:
 
     def query(self, sql, value=()):
         try:
-            cursor = self.conn.cursor()
+            cursor = self.conn.cursor(buffered=True)
             cursor.execute(sql, value)
             return cursor
-        except:
-            for i in range(5):
-                try:
-                    self.connect()
-                    cursor = self.conn.cursor()
-                    cursor.execute(sql, value)
-                    return cursor
-                except:
-                    print(
-                        f"{bcolors.WARNING}[ MYSQL ] Connection failed, retrying in ({i+1}) secs...{bcolors.RESET}"
-                    )
-                    time.sleep(i + 1)
-            print(f"{bcolors.FAIL}[ MYSQL ] Connection Lost.{bcolors.RESET}")
-            exit(1)
+        except Exception:
+            print(
+                f"{colors.WARNING}[ MYSQL ]{colors.RESET} Execute failed."
+            )
+            traceback.print_exc()
+            return None

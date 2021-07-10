@@ -1,5 +1,4 @@
 import codecs
-from constants import bcolors, langarr
 import os
 import signal
 import time
@@ -8,6 +7,9 @@ import yaml
 from os import path
 from pathlib import Path
 from random import randint
+
+from constants.colors import colors
+from constants.command import langarr
 
 MAX_ERROR_LINE = 200
 
@@ -107,7 +109,7 @@ def create(userId, language, sourcePath, problemId):
             commandData = yaml.load(command, Loader=yaml.FullLoader)
         except:
             print(
-                f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] Can't read command.yaml")
+                f"[ {colors.WARNING}COMPILE{colors.RESET} ] Can't read command.yaml")
 
     if type(commandData) == type(dict()):
         if language in commandData:
@@ -116,10 +118,10 @@ def create(userId, language, sourcePath, problemId):
                     "[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
             else:
                 print(
-                    f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] 'compile' not found in lang {language}")
+                    f"[ {colors.WARNING}COMPILE{colors.RESET} ] 'compile' not found in lang {language}")
         else:
             print(
-                f"[ {bcolors.WARNING}COMPILE{bcolors.RESET} ] {language} not found in command.yaml")
+                f"[ {colors.WARNING}COMPILE{colors.RESET} ] {language} not found in command.yaml")
 
     result = None
     if compilecmd == None:
@@ -127,7 +129,7 @@ def create(userId, language, sourcePath, problemId):
             "[sourcePath]", sourcePath)
     else:
         print(
-            f"[ {bcolors.HEADER}COMPILE{bcolors.RESET} ] use command from command.yaml")
+            f"[ {colors.HEADER}COMPILE{colors.RESET} ] use command from command.yaml")
     os.system(compilecmd)
 
     if language == "python":
