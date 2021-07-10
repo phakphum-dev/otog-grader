@@ -4,16 +4,10 @@ from datetime import datetime
 import tabulate
 import subtask
 
-from constants import bcolors, langarr
-from database import (
-    getQueue,
-    updateRunningInCase,
-    updateResult,
-    closeConnection,
-    testConnection,
-)
+from constants.colors import colors
+from database.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
 from handle import *
-from DTO import submissionDTO
+from DTO.submission import submissionDTO
 
 PYTIMEFACTOR = 25
 
@@ -24,7 +18,7 @@ def startJudge(queueData):
     result = ""
     count = 0
     sumTime = 0
-    print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Receive New Submission.")
+    print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Receive New Submission.")
     print(f"[ {datetime.now().strftime('%d/%m/%Y - %H:%M:%S')} ]")
     print(
         tabulate.tabulate(
@@ -43,7 +37,7 @@ def startJudge(queueData):
     # If does not specify number of testcase
     if not submission.testcase:
         print(
-            f"[ {bcolors.FAIL}GRADER{bcolors.RESET} ] Number of testcase does not specified."
+            f"[ {colors.FAIL}GRADER{colors.RESET} ] Number of testcase does not specified."
         )
         updateResult(
             submission.id,
@@ -56,7 +50,7 @@ def startJudge(queueData):
 
     # Check if testcases actually exist
     if not Path(f"./source/{submission.problemId}").is_dir():
-        print(f"[ {bcolors.FAIL}GRADER{bcolors.RESET} ] No testcase. Aborted.")
+        print(f"[ {colors.FAIL}GRADER{colors.RESET} ] No testcase. Aborted.")
         updateResult(
             submission.id,
             "No Testcase",
@@ -66,13 +60,13 @@ def startJudge(queueData):
         )
         return
 
-    print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] Compiling process...")
+    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] Compiling process...")
 
     try:
         sourceCode = submission.sourceCode.decode("UTF-8")
     except:
         print(
-            f"[ {bcolors.FAIL}GRADER{bcolors.RESET} ] Cannot decode recieved source string. Aborted."
+            f"[ {colors.FAIL}GRADER{colors.RESET} ] Cannot decode recieved source string. Aborted."
         )
         updateResult(
             submission.id,
@@ -94,7 +88,7 @@ def startJudge(queueData):
 
     # If compile error
     if err:
-        print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Compile error.")
+        print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Compile error.")
         try:
             errmsg = fileRead("env/error.txt") or None
         except:
@@ -271,27 +265,31 @@ def startJudge(queueData):
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
 
-    print(f"[ {bcolors.OKCYAN}GRADER{bcolors.RESET} ] Grading session completed.\n\t-> Waiting for new submission.")
-
 
 def main():
-    try:
-        testConnection()
-    except:
-        print(f"[ {bcolors.FAIL}MYSQL{bcolors.RESET} ] Connection failed.")
-        exit(1)
-    print(f"[ { bcolors.BOLD}GRADER{bcolors.RESET} ] Grader started.")
 
     testEnv()
 
+    testDBConnection()
+
+    print(f"[ { colors.BOLD}GRADER{colors.RESET} ] Grader started.")
+
     while True:
+        DBConnect()
         queue = getQueue()
         if not queue:
+            DBDisconnect()
             time.sleep(1)
             continue
         startJudge(queue)
+        print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Grading session completed.\n\t-> Waiting for new submission.")
+        DBDisconnect()
 
 
 if __name__ == "__main__":
-    main()
-    closeConnection()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        print(" Keyboard Interrupt Detected.\n")
+    except Exception as e:
+        print("Exception : "+str(e)+"\n")
