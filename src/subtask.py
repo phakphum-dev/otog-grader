@@ -1,5 +1,5 @@
 import ast
-from constants import bcolors
+from constants.colors import colors
 
 
 def parseSqBr(content: str):
@@ -158,7 +158,7 @@ def compile(content: str):
                 subtaskData[i+1] = dict(dataJson[i+1])
         else:
             print(
-                f"[ {bcolors.WARNING}SUBTASK{bcolors.RESET} ] Invalid subtask data, so use default instead")
+                f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid subtask data, so use default instead")
             ind = 1
             for sub in subtask:
                 subtaskData[ind] = {
@@ -172,19 +172,19 @@ def compile(content: str):
                 if type(subtaskData[i]["require"]) != type(69) and type(subtaskData[i]["require"]) != type([]):
                     subtaskData[i]["require"] = []
                     print(
-                        f"[ {bcolors.WARNING}SUBTASK{bcolors.RESET} ] Invalid require data in subtask {i}, expected number or list")
+                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid require data in subtask {i}, expected number or list")
 
             if "score" in subtaskData[i]:
                 if type(subtaskData[i]["score"]) != type(69) and type(subtaskData[i]["score"]) != type(69.2):
                     subtaskData[i]["score"] = len(subtask[i-1])
                     print(
-                        f"[ {bcolors.WARNING}SUBTASK{bcolors.RESET} ] Invalid score data in subtask {i}, so use score by counting")
+                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid score data in subtask {i}, so use score by counting")
 
             if "group" in subtaskData[i]:
                 if type(subtaskData[i]["group"]) != type(False):
                     subtaskData[i]["group"] = True
                     print(
-                        f"[ {bcolors.WARNING}SUBTASK{bcolors.RESET} ] Invalid group data in subtask {i}, expected true or false. So use True instead")
+                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid group data in subtask {i}, expected true or false. So use True instead")
 
         if not validRequire(subtaskData):
             return -1, f"Invalid require (found loop in require)"
