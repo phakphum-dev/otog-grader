@@ -109,26 +109,26 @@ def startJudge(queueData):
 
     judgeType = getTypeJudge(submission.problemId)
 
-    print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] use {judgeType} Judge...")
-    print(f"[ {bcolors.HEADER}GRADER{bcolors.RESET} ] Runtime process:")
+    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] use {judgeType} Judge...")
+    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] Runtime process:")
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
         mxCase, bigSubdata = subtask.compile(subContent)
         if mxCase == -1:
             print(
-                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Subtask error : {bigSubdata}")
+                f"[ {colors.FAIL}SUBTASK{colors.RESET} ] Subtask error : {bigSubdata}")
             updateResult(
                 submission.id,
                 "Judge Error",
                 0,
                 0,
-                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subData}",
+                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{bigSubdata}",
             )
             return
         elif testcase != mxCase:
             print(
-                f"[ {bcolors.FAIL}SUBTASK{bcolors.RESET} ] Expect {mxCase} cases but got {testcase}")
+                f"[ {colors.FAIL}SUBTASK{colors.RESET} ] Expect {mxCase} cases but got {testcase}")
             updateResult(
                 submission.id,
                 "Judge Error",
@@ -138,7 +138,7 @@ def startJudge(queueData):
             )
             return
         else:
-            print(f"[ {bcolors.HEADER}SUBTASK{bcolors.RESET} ] use custom subtask")
+            print(f"[ {colors.HEADER}SUBTASK{colors.RESET} ] use custom subtask")
     else:
         mxCase, bigSubdata = testcase, ([[i for i in range(
             1, testcase + 1)]], {1: {"group": False, "score": testcase}})
