@@ -101,11 +101,7 @@ def startJudge(queueData):
         return
 
     # Split testcase into subtasks if available
-    testcase = [int(e) for e in submission.testcase.split()]
-
-    # For contest mode
-    if not submission.contestId:
-        testcase = testcase[-1:]
+    testcase = int(submission.testcase)
 
     judgeType = getTypeJudge(submission.problemId)
 
@@ -140,8 +136,6 @@ def startJudge(queueData):
         else:
             print(f"[ {colors.HEADER}SUBTASK{colors.RESET} ] use custom subtask")
     else:
-        mxCase, bigSubdata = testcase, ([[i for i in range(
-            1, testcase + 1)]], {1: {"group": False, "score": testcase}})
 
     print("\t-> Result: ", end="", flush=True)
     testcases, subData = bigSubdata
