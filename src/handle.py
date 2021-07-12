@@ -156,11 +156,12 @@ def errMsgHandle(errMes: str) -> str:
 
 def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath):
     inputFile = (
-        f" <source/{problemId}/{testcase}.in 1>env/output.txt 2>env/error.txt"
+        f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
     )
-    cmd = f"ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
+    cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
     cmd = cmd.replace("[inputfile]", inputFile)
-    cmd = cmd.replace("[sourcePath]", sourcePath)
+    cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
+    os.system("chmod -R 100 env")
     if os.path.exists("env/error.txt"):
         os.system("chmod 775 env/error.txt")
     if os.path.exists("env/output.txt"):
@@ -176,6 +177,7 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourc
     timediff = endtime - starttime
     if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    os.system("chmod -R 750 env")
     return t, timediff
 
 
