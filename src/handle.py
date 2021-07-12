@@ -165,7 +165,7 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourc
     cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
     cmd = cmd.replace("[inputfile]", inputFile)
     cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
-    os.system("chmod -R 100 env")
+    os.system("chmod 500 env")
     os.system("chmod 775 env/error.txt")
     os.system("chmod 775 env/output.txt")
     starttime = time.time()
