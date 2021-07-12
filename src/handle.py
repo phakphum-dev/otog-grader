@@ -138,6 +138,10 @@ def create(userId, language, sourcePath, problemId):
     else:
         if not os.path.exists("env/out"):
             return "Compilation Error"
+
+    # prepare output and error text file
+    os.system("touch env/error.txt")
+    os.system("touch env/output.txt")
     return result
 
 
@@ -162,10 +166,8 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourc
     cmd = cmd.replace("[inputfile]", inputFile)
     cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
     os.system("chmod -R 100 env")
-    if os.path.exists("env/error.txt"):
-        os.system("chmod 775 env/error.txt")
-    if os.path.exists("env/output.txt"):
-        os.system("chmod 775 env/output.txt")
+    os.system("chmod 775 env/error.txt")
+    os.system("chmod 775 env/output.txt")
     starttime = time.time()
     proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
     try:
