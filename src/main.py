@@ -136,6 +136,8 @@ def startJudge(queueData):
         else:
             print(f"[ {colors.HEADER}SUBTASK{colors.RESET} ] use custom subtask")
     else:
+        mxCase, bigSubdata = testcase, ([[i for i in range(
+            1, testcase + 1)]], {1: {"group": False, "score": testcase}})
 
     print("\t-> Result: ", end="", flush=True)
     testcases, subData = bigSubdata
