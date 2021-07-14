@@ -1,5 +1,6 @@
 import ast
-from constants.colors import colors
+
+from message import printWarning
 
 
 def parseSqBr(content: str):
@@ -107,91 +108,104 @@ def getSeq(data):
     return seq
 
 
+def createDefaultGOption(testList):
+    subtaskData = dict()
+    ind = 1
+    for sub in testList:
+        subtaskData[ind] = {
+            "group": True,
+            "score": len(sub)
+        }
+        ind += 1
+    return subtaskData
+
+
 def compile(content: str):
     content = content.strip()
     content = content.replace("true", "True").replace("false", "False")
 
-    if content.startswith("["):
-
-        result, maxCase = parseSqBr(content)
-        if maxCase == -1:
-            return -1, result
-        subtaskData = dict()
-        ind = 1
-        for sub in result:
-            subtaskData[ind] = {
-                "group": True,
-                "score": len(sub)
-            }
-            ind += 1
-        return maxCase, (result, subtaskData)
+    # if content.startswith("["):
+    #     result, maxCase = parseSqBr(content)
+    #     if maxCase == -1:
+    #         return -1, result
+    #     subtaskData = dict()
+    #     ind = 1
+    #     for sub in result:
+    #         subtaskData[ind] = {
+    #             "group": True,
+    #             "score": len(sub)
+    #         }
+    #         ind += 1
+    #     return maxCase, (result, subtaskData)
     if content.startswith("{"):
         try:
             dataJson = ast.literal_eval(content)
         except Exception as e:
             return -1, f"Invalid json?...\n{e}\nBlame Problem author"
 
-        if "subtask" not in dataJson:
-            return -1, f"expected 'subtask'!"
+        if "testList" not in dataJson:
+            return -1, f"expected 'testList'!"
 
-        if type(dataJson["subtask"]) != type("Hello"):
-            return -1, f"expected string in subtask!"
+        if type(dataJson["testList"]) != type("Hello"):
+            return -1, f"expected string in testList!"
 
-        subtask, mxTestcase = parseSqBr(dataJson["subtask"])
+        testList, mxTestcase = parseSqBr(dataJson["testList"])
 
         if mxTestcase == -1:
-            return -1, subtask
+            return -1, testList
 
         isAllSubtask = True
-        for i in range(len(subtask)):
-            if i+1 not in dataJson:
-                isAllSubtask = False
-                break
+        if "options" not in dataJson:
+            isAllSubtask = False
+        else:
+            for i in range(len(testList)):
+                if i+1 not in dataJson["options"]:
+                    isAllSubtask = False
+                    break
 
-            if type(dataJson[i+1]) != type(dict()):
-                isAllSubtask = False
-                break
+                if type(dataJson["options"][i+1]) != type(dict()):
+                    isAllSubtask = False
+                    break
 
         subtaskData = dict()
         if isAllSubtask:
-            for i in range(len(subtask)):
-                subtaskData[i+1] = dict(dataJson[i+1])
+            for i in range(len(testList)):
+                subtaskData[i+1] = dict(dataJson["options"][i+1])
         else:
-            print(
-                f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid subtask data, so use default instead")
-            ind = 1
-            for sub in subtask:
-                subtaskData[ind] = {
-                    "group": True,
-                    "score": len(sub)
-                }
-                ind += 1
+            printWarning("SUBTASK", "Invalid 'options' so use default instead")
+            subtaskData = createDefaultGOption(testList)
 
-        for i in range(1, len(subtask)+1):
+        for i in range(1, len(testList)+1):
             if "require" in subtaskData[i]:
                 if type(subtaskData[i]["require"]) != type(69) and type(subtaskData[i]["require"]) != type([]):
                     subtaskData[i]["require"] = []
-                    print(
-                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid require data in subtask {i}, expected number or list")
+                    printWarning(
+                        "SUBTASK", f"Invalid require data in subtask {i}, expected number or list")
 
             if "score" in subtaskData[i]:
                 if type(subtaskData[i]["score"]) != type(69) and type(subtaskData[i]["score"]) != type(69.2):
-                    subtaskData[i]["score"] = len(subtask[i-1])
-                    print(
-                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid score data in subtask {i}, so use score by counting")
+                    subtaskData[i]["score"] = len(testList[i-1])
+                    printWarning(
+                        "SUBTASK", f"Invalid score data in subtask {i}, so use score by counting")
 
             if "group" in subtaskData[i]:
                 if type(subtaskData[i]["group"]) != type(False):
                     subtaskData[i]["group"] = True
-                    print(
-                        f"[ {colors.WARNING}SUBTASK{colors.RESET} ] Invalid group data in subtask {i}, expected true or false. So use True instead")
+                    printWarning(
+                        "SUBTASK", f"Invalid group data in subtask {i}, expected true or false. So use True instead")
 
         if not validRequire(subtaskData):
             return -1, f"Invalid require (found loop in require)"
 
-        return mxTestcase, (subtask, subtaskData)
+        return mxTestcase, (testList, subtaskData)
+    else:  # nums
 
-    return -1, "Invalid subtask format :(:(:(\nBlame Problem author"
+        try:
+            nTest = int(content)
+        except:
+            return -1, "Invalid subtask format :(:(:(\nBlame Problem author"
+        testList = [i for i in range(1, nTest+1)]
+        return nTest, ([[i for i in range(1, nTest + 1)]], {1: {"group": False, "score": nTest}})
 
 
 def finalResult(nowVerdict, bigSubtaskData):

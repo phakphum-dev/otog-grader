@@ -8,7 +8,7 @@ from os import path
 from pathlib import Path
 from random import randint
 
-from constants.colors import colors
+from message import *
 from constants.command import langarr
 
 MAX_ERROR_LINE = 200
@@ -108,8 +108,7 @@ def create(userId, language, sourcePath, problemId):
                 command = f.read()
             commandData = yaml.load(command, Loader=yaml.FullLoader)
         except:
-            print(
-                f"[ {colors.WARNING}COMPILE{colors.RESET} ] Can't read command.yaml")
+            printWarning("COMPILE", "Can't read command.yaml")
 
     if type(commandData) == type(dict()):
         if language in commandData:
@@ -117,19 +116,18 @@ def create(userId, language, sourcePath, problemId):
                 compilecmd = commandData[language]["compile"].replace(
                     "[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
             else:
-                print(
-                    f"[ {colors.WARNING}COMPILE{colors.RESET} ] 'compile' not found in lang {language}")
+                printWarning(
+                    "COMPILE", f"'compile' not found in lang {language}")
+
         else:
-            print(
-                f"[ {colors.WARNING}COMPILE{colors.RESET} ] {language} not found in command.yaml")
+            printWarning("COMPILE", f"{language} not found in command.yaml")
 
     result = None
     if compilecmd == None:
         compilecmd = langarr[language]["compile"].replace(
             "[sourcePath]", sourcePath)
     else:
-        print(
-            f"[ {colors.HEADER}COMPILE{colors.RESET} ] use command from command.yaml")
+        printHeader("COMPILE", f"use command from command.yaml")
     os.system(compilecmd)
 
     if language == "python":

@@ -4,7 +4,7 @@ from datetime import datetime
 import tabulate
 import subtask
 
-from constants.colors import colors
+from message import *
 from database.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
 from handle import *
 from DTO.submission import submissionDTO
@@ -18,7 +18,7 @@ def startJudge(queueData):
     result = ""
     count = 0
     sumTime = 0
-    print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Receive New Submission.")
+    printOKCyan("GRADER", "Receive New Submission.")
     print(f"[ {datetime.now().strftime('%d/%m/%Y - %H:%M:%S')} ]")
     print(
         tabulate.tabulate(
@@ -36,9 +36,7 @@ def startJudge(queueData):
 
     # If does not specify number of testcase
     if not submission.testcase:
-        print(
-            f"[ {colors.FAIL}GRADER{colors.RESET} ] Number of testcase does not specified."
-        )
+        printFail("GRADER", "Number of testcase does not specified.")
         updateResult(
             submission.id,
             "No nCase",
@@ -50,7 +48,7 @@ def startJudge(queueData):
 
     # Check if testcases actually exist
     if not Path(f"./source/{submission.problemId}").is_dir():
-        print(f"[ {colors.FAIL}GRADER{colors.RESET} ] No testcase. Aborted.")
+        printFail("GRADER", "No testcase. Aborted.")
         updateResult(
             submission.id,
             "No Testcase",
@@ -60,14 +58,12 @@ def startJudge(queueData):
         )
         return
 
-    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] Compiling process...")
+    printHeader("GRADER", "Compiling process...")
 
     try:
         sourceCode = submission.sourceCode.decode("UTF-8")
     except:
-        print(
-            f"[ {colors.FAIL}GRADER{colors.RESET} ] Cannot decode recieved source string. Aborted."
-        )
+        printFail("GRADER", "Cannot decode received source string. Aborted.")
         updateResult(
             submission.id,
             "Undecodable",
@@ -88,7 +84,7 @@ def startJudge(queueData):
 
     # If compile error
     if err:
-        print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Compile error.")
+        printOKCyan("GRADER", "Compile error.")
         try:
             errmsg = fileRead("env/error.txt") or None
         except:
@@ -105,43 +101,30 @@ def startJudge(queueData):
 
     judgeType = getTypeJudge(submission.problemId)
 
-    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] use {judgeType} Judge...")
-    print(f"[ {colors.HEADER}GRADER{colors.RESET} ] Runtime process:")
+    printHeader("GRADER", f"use {judgeType} Judge...")
+    printHeader("GRADER", f"Runtime process:")
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        mxCase, bigSubdata = subtask.compile(subContent)
-        if mxCase == -1:
-            print(
-                f"[ {colors.FAIL}SUBTASK{colors.RESET} ] Subtask error : {bigSubdata}")
-            updateResult(
-                submission.id,
-                "Judge Error",
-                0,
-                0,
-                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{bigSubdata}",
-            )
-            return
-        elif testcase != mxCase:
-            print(
-                f"[ {colors.FAIL}SUBTASK{colors.RESET} ] Expect {mxCase} cases but got {testcase}")
-            updateResult(
-                submission.id,
-                "Judge Error",
-                0,
-                0,
-                f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\nExpect {mxCase} cases but got {testcase}",
-            )
-            return
-        else:
-            print(f"[ {colors.HEADER}SUBTASK{colors.RESET} ] use custom subtask")
+        printHeader("SUBTASK", f"Found custom subtask")
     else:
-        mxCase, bigSubdata = testcase, ([[i for i in range(
-            1, testcase + 1)]], {1: {"group": False, "score": testcase}})
+        subContent = submission.testcase
+    mxCase, subtaskData = subtask.compile(subContent)
+
+    if mxCase == -1:
+        printFail("SUBTASK", f"Subtask error : {subtaskData}")
+        updateResult(
+            submission.id,
+            "Judge Error",
+            0,
+            0,
+            f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
+        )
+        return
 
     print("\t-> Result: ", end="", flush=True)
-    testcases, subData = bigSubdata
-    seqCase = subtask.getSeq(subData)
+    testList, testOption = subtaskData
+    seqCase = subtask.getSeq(testOption)
     isPass = [False for i in range(len(seqCase) + 5)]
     score = 0
     mxScore = 0
@@ -149,7 +132,7 @@ def startJudge(queueData):
 
     for testInd in seqCase:
         if len(seqCase) != 1:
-            if "group" in subData[testInd] and subData[testInd]["group"]:
+            if "group" in testOption[testInd] and testOption[testInd]["group"]:
                 result += "["
                 print("[", end="", flush=True)
             else:
@@ -158,25 +141,25 @@ def startJudge(queueData):
         correct = 0
         isSkiped = False
         # Check if it prerequisite when it it contest
-        if submission.contestId and "require" in subData[testInd]:
+        if submission.contestId and "require" in testOption[testInd]:
             allReq = []
-            if type(subData[testInd]["require"]) == type(69) and subData[testInd]["require"] <= len(testcases):
-                allReq.append(subData[testInd]["require"])
-            elif type(subData[testInd]["require"]) == type([]):
-                for req in subData[testInd]["require"]:
-                    if type(req) == type(69) and req <= len(testcases):
+            if type(testOption[testInd]["require"]) == type(69) and testOption[testInd]["require"] <= len(testList):
+                allReq.append(testOption[testInd]["require"])
+            elif type(testOption[testInd]["require"]) == type([]):
+                for req in testOption[testInd]["require"]:
+                    if type(req) == type(69) and req <= len(testList):
                         allReq.append(req)
             for req in allReq:
                 if not isPass[req]:
                     isSkiped = True
             if isSkiped:
-                allCrt = len(testcases[testInd-1])
+                allCrt = len(testList[testInd-1])
                 correct = 0
                 print("S"*allCrt, end="", flush=True)
                 result += "S"*allCrt
                 isPass[testInd] = False
 
-        for x in testcases[testInd-1]:
+        for x in testList[testInd-1]:
 
             if isSkiped:
                 break
@@ -214,23 +197,23 @@ def startJudge(queueData):
             updateRunningInCase(submission.id, x)
 
         # calculate score here
-        allCorrect = len(testcases[testInd-1])
-        if "group" in subData[testInd] and subData[testInd]["group"]:
+        allCorrect = len(testList[testInd-1])
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
             if correct != allCorrect:
                 correct = 0
 
         isPass[testInd] = (correct == allCorrect)
 
-        if "score" in subData[testInd]:
+        if "score" in testOption[testInd]:
             score += correct * \
-                float(subData[testInd]["score"]) / allCorrect
-            mxScore += float(subData[testInd]["score"])
+                float(testOption[testInd]["score"]) / allCorrect
+            mxScore += float(testOption[testInd]["score"])
         else:
             score += correct
             mxScore += allCorrect
 
         if len(seqCase) != 1:
-            if "group" in subData[testInd] and subData[testInd]["group"]:
+            if "group" in testOption[testInd] and testOption[testInd]["group"]:
                 result += "]"
                 print("]", end="", flush=True)
             else:
@@ -267,8 +250,7 @@ def main():
     testEnv()
 
     testDBConnection()
-
-    print(f"[ { colors.BOLD}GRADER{colors.RESET} ] Grader started.")
+    printBlod("GRADER", "Grader started.")
 
     while True:
         DBConnect()
@@ -278,7 +260,8 @@ def main():
             time.sleep(1)
             continue
         startJudge(queue)
-        print(f"[ {colors.OKCYAN}GRADER{colors.RESET} ] Grading session completed.\n\t-> Waiting for new submission.")
+        printOKCyan(
+            "GRADER", "Grading session completed.\n\t-> Waiting for new submission.")
         DBDisconnect()
 
 
