@@ -9,7 +9,8 @@ from database.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection
 from handle import *
 from DTO.submission import submissionDTO
 
-PYTIMEFACTOR = 25
+
+PYTIMEFACTOR = 5
 
 
 def startJudge(queueData):
