@@ -21,4 +21,5 @@ jobs:
           script: |
             cd otog/otog-grader
             git pull origin main
+            pm2 restart otog-grader
             echo 'Deployment successful to digital ocean'
