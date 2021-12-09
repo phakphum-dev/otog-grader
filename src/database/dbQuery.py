@@ -67,7 +67,8 @@ def updateRunningInCase(resultId, case):
 def updateResult(resultId, result, score, sumTime, errmsg):
     sql = """UPDATE submission SET result = %s, score = %s, timeUsed = %s, 
             status = %s, errmsg = %s, updateDate = %s WHERE id = %s"""
-    status = "accept" if all(c in "P[]()" for c in result) else "reject"
+    status = "accept" if all(
+        c in "P[]()" for c in result) or result == "Accepted" else "reject"
     val = (result, score, int(sumTime), status,
            errmsg, datetime.now(), str(resultId))
     cur = db.query(sql, val)

@@ -5,8 +5,7 @@ from database.dbQuery import updateResult, updateRunningInCase
 import constants as const
 
 
-def start(submission: submissionDTO, srcPath: str, isTest):
-
+def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("GRADER", f"use {judgeType} Judge...")
@@ -130,3 +129,79 @@ def start(submission: submissionDTO, srcPath: str, isTest):
     sumTime //= langarr[submission.language]["timeFactor"]
 
     return result, finalScore, sumTime, None
+
+
+def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
+    judgeType = getTypeJudge(submission.problemId)
+
+    printHeader("Codeforces", f"Evaluate with Codeforces standard")
+    printHeader("GRADER", f"use {judgeType} Judge...")
+    printHeader("GRADER", f"Runtime process:")
+
+    if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
+        subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
+        printHeader("SUBTASK", f"Found custom subtask (But don't use)")
+    else:
+        subContent = submission.testcase
+    mxCase, subtaskData = subtask.compile(subContent)
+
+    if mxCase == -1:
+        printFail("SUBTASK", f"Subtask error : {subtaskData}")
+        return "Judge Error", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
+
+    print("\t-> Result: ", end="", flush=True)
+    result = "Accepted"
+    resultTime = 0
+
+    for x in range(1, mxCase+1):
+
+        testTimeLimit = submission.timeLimit * \
+            langarr[submission.language]["timeFactor"]
+
+        t, elapse = execute(
+            submission.userId,  # User ID
+            submission.problemId,  # Problem ID
+            x,  # Index of testcase
+            testTimeLimit,  # Time limit
+            (submission.memoryLimit) * 1024,  # Memory limit (in kb)
+            submission.language,  # Language
+            srcPath
+        )
+
+        userOutputPath = "env/output.txt"
+        probOutputPath = f"./source/{submission.problemId}/{x}.sol"
+
+        resultTime = max(resultTime, elapse * 1000)
+        errCode = error(t)
+        verdict = ":)"
+        if not errCode:
+            verdict = getVerdict(
+                submission.problemId, userOutputPath, probOutputPath, x, srcPath, judgeType)
+        elif errCode == "TLE":  # T
+            result = f"Time limit exceeded on pretest {x}"
+        else:  # X
+            result = f"Runtime error on pretest {x}"
+
+        if result == "Accepted" and verdict != "P":  # - H Whatever
+            result = f"Wrong answer on pretest {x}"
+
+        if result != "Accepted":
+            print(f"\n         ", result, flush=True)
+            resultTime //= langarr[submission.language]["timeFactor"]
+            return result, 0, resultTime, None
+        else:
+            print('P', end="", flush=True)
+            if not isTest:
+                updateRunningInCase(submission.id, x)
+
+    resultTime //= langarr[submission.language]["timeFactor"]
+
+    return result, submission.mxScore, resultTime, None
+
+
+def start(submission: submissionDTO, srcPath: str, isTest):
+
+    if submission.mode == "classic":
+        return classicEvaluate(submission, srcPath, isTest)
+    elif submission.mode == "codeforces":
+        return cfEvaluate(submission, srcPath, isTest)
