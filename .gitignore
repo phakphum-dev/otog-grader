@@ -165,4 +165,9 @@ src/source
 src/MiniDB.ini
 src/testCodes
 src/RunTest.sh
+
 config.ini
+runTest.sh
+testCodes
+MiniDB.ini
+source
