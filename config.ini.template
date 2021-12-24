@@ -4,3 +4,9 @@ port =
 user =
 passwd =
 database =
+[postgres]
+host = 
+port = 
+user = 
+passwd = 
+database = 
