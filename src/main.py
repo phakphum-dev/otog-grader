@@ -5,7 +5,7 @@ import tabulate
 import subtask
 
 from message import *
-from database.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
+from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
 from handle import *
 from DTO.submission import submissionDTO
 
