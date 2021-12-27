@@ -15,4 +15,4 @@ class submissionDTO:
         self.memoryLimit = data[18]
         self.testcase = data[21]
         # TODO
-        self.mode = "codeforces"
+        self.mode = "classic"
