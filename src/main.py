@@ -12,7 +12,7 @@ import evaluate
 
 
 def startJudge(queueData, isTest: bool = False):
-
+    global updateResult
     if isTest:
         def updateResult(subName, result, score, timeLen, comment):
             print(f"\n\n-------------End of submit {subName}-------------")
