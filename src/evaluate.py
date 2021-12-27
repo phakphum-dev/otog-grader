@@ -1,7 +1,7 @@
 from DTO.submission import submissionDTO
 from handle import *
 import subtask
-from database.dbQuery import updateResult, updateRunningInCase
+from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
 
 
