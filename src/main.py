@@ -66,23 +66,23 @@ def startJudge(queueData, isTest: bool = False):
 
     printHeader("GRADER", "Compiling process...")
 
-    try:
-        sourceCode = submission.sourceCode.decode("UTF-8")
-    except:
-        printFail("GRADER", "Cannot decode received source string. Aborted.")
-        updateResult(
-            submission.id,
-            "Undecodable",
-            0,
-            0,
-            "Cannot decode your submitted code. Check your submission.",
-        )
-        return
+    # try:
+    #     sourceCode = submission.sourceCode.decode("UTF-8")
+    # except:
+    #     printFail("GRADER", "Cannot decode received source string. Aborted.")
+    #     updateResult(
+    #         submission.id,
+    #         "Undecodable",
+    #         0,
+    #         0,
+    #         "Cannot decode your submitted code. Check your submission.",
+    #     )
+    #     return
 
     prepareEnv(submission.problemId)
 
     # Write source string to file
-    srcCodePath = createSourceCode(sourceCode, submission.language)
+    srcCodePath = createSourceCode(submission.sourceCode, submission.language)
 
     # Compile
     err = create(submission.userId, submission.language,
