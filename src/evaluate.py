@@ -201,7 +201,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
 def start(submission: submissionDTO, srcPath: str, isTest):
 
-    if submission.mode == "classic":
-        return classicEvaluate(submission, srcPath, isTest)
-    elif submission.mode == "codeforces":
+    if submission.mode == "codeforces":
         return cfEvaluate(submission, srcPath, isTest)
+    else:
+        return classicEvaluate(submission, srcPath, isTest)
