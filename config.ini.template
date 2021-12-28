@@ -1,12 +1,10 @@
-[mysql]
-host =
-port =
-user =
-passwd =
-database =
 [postgres]
 host = 
 port = 
 user = 
 passwd = 
 database = 
+
+[grader]
+max_error_line = 200
+global_time_factor = 1

@@ -3,6 +3,7 @@ from handle import *
 import subtask
 from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
+import config
 
 
 def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
@@ -66,7 +67,8 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 break
 
             testTimeLimit = submission.timeLimit * \
-                langarr[submission.language]["timeFactor"]
+                langarr[submission.language]["timeFactor"] * \
+                float(config.get("grader", "global_time_factor"))
 
             t, elapse = execute(
                 submission.userId,  # User ID
@@ -156,7 +158,8 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
     for x in range(1, mxCase+1):
 
         testTimeLimit = submission.timeLimit * \
-            langarr[submission.language]["timeFactor"]
+            langarr[submission.language]["timeFactor"] * \
+                float(config.get("grader", "global_time_factor"))
 
         t, elapse = execute(
             submission.userId,  # User ID
