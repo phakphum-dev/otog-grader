@@ -43,8 +43,9 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
         correct = 0
         isSkiped = False
+
         # Check if it prerequisite when it it contest
-        if submission.contestId and "require" in testOption[testInd]:
+        if (submission.contestId or isTest) and "require" in testOption[testInd]:
             allReq = []
             if type(testOption[testInd]["require"]) == type(69) and testOption[testInd]["require"] <= len(testList):
                 allReq.append(testOption[testInd]["require"])
