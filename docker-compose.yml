@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  grader:
+    build: .
+    container_name: otog-grader
+    volumes:
+      - ./source:/usr/src/app/source:ro
+    networks:
+      - otog-network
+
+networks:
+  otog-network:
+    name: otog-network
