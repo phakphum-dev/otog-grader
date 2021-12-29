@@ -142,7 +142,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        printHeader("SUBTASK", f"Found custom subtask (But don't use)")
+        printHeader("SUBTASK", f"Found custom subtask (But don't use in codeforce)")
     else:
         subContent = submission.testcase
     mxCase, subtaskData = subtask.compile(subContent)
