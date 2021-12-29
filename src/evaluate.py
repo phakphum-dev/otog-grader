@@ -27,19 +27,20 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     testList, testOption = subtaskData
     seqCase = subtask.getSeq(testOption)
     isPass = [False for i in range(len(seqCase) + 5)]
+    result = ["" for i in range(len(seqCase) + 5)]
     score = 0
     mxScore = 0
-    result = ""
     sumTime = 0
 
     for testInd in seqCase:
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "["
-                print("[", end="", flush=True)
-            else:
-                result += "("
-                print("(", end="", flush=True)
+        
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "["
+            print("[", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += "("
+            print("(", end="", flush=True)
+
         correct = 0
         isSkiped = False
         # Check if it prerequisite when it it contest
@@ -58,7 +59,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 allCrt = len(testList[testInd-1])
                 correct = 0
                 print("S"*allCrt, end="", flush=True)
-                result += "S"*allCrt
+                result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
         for x in testList[testInd-1]:
@@ -95,7 +96,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 verdict = "T"
             else:
                 verdict = "X"
-            result += verdict
+            result[testInd] += verdict
             print(verdict, end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
@@ -116,21 +117,22 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
             score += correct
             mxScore += allCorrect
 
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "]"
-                print("]", end="", flush=True)
-            else:
-                result += ")"
-                print(")", end="", flush=True)
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "]"
+            print("]", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += ")"
+            print(")", end="", flush=True)
 
-    if "!" in result:
-        return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+    for testInd in seqCase:
+        if "!" in result[testInd]:
+            return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
 
+    finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
     sumTime //= langarr[submission.language]["timeFactor"]
 
-    return result, finalScore, sumTime, None
+    return finalResult, finalScore, sumTime, None
 
 
 def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
