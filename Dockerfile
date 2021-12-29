@@ -21,13 +21,17 @@ RUN apk add --update --no-cache python3 gcc g++
 RUN addgroup -S otog -g 1000 \
     && adduser -S -G otog -u 1000 otog
 
-USER otog
-
 WORKDIR /usr/src/app
+
+RUN mkdir -p ./env
+
+RUN chown otog:otog ./env
 
 COPY --chown=otog:otog --from=build /usr/src/app/venv ./venv
 COPY --chown=otog:otog config.ini ./
 COPY --chown=otog:otog src/ ./src
+
+USER otog
 
 ENV PATH="/usr/src/app/venv/bin:$PATH"
 
