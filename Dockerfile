@@ -23,9 +23,7 @@ RUN addgroup -S otog -g 1000 \
 
 WORKDIR /usr/src/app
 
-RUN mkdir -p ./env
-
-RUN chown otog:otog ./env
+RUN chown otog:otog /usr/src/app
 
 COPY --chown=otog:otog --from=build /usr/src/app/venv ./venv
 COPY --chown=otog:otog config.ini ./
