@@ -160,7 +160,6 @@ Thumbs.db #thumbnail cache on Windows
 
 #DLC From Test Bruh
 .vscode
-src/Test.py
 src/source
 src/MiniDB.ini
 src/testCodes
@@ -169,5 +168,5 @@ src/RunTest.sh
 config.ini
 runTest.sh
 testCodes
-MiniDB.ini
+testCodeDB.ini
 source
