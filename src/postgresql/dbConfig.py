@@ -1,17 +1,9 @@
-import configparser
-
-config = configparser.ConfigParser()
-try:
-    config.read("./config.ini")
-except:
-    print("config.ini not found...")
-    exit(1)
-
+import config
 
 dbConfig = {
-    "host": config["postgres"]["host"],
-    "port": config["postgres"]["port"],
-    "user": config["postgres"]["user"],
-    "password": config["postgres"]["passwd"],
-    "dbname": config["postgres"]["database"],
+    "host": config.get("postgres", "host"),
+    "port": config.get("postgres", "port"),
+    "user": config.get("postgres", "user"),
+    "password": config.get("postgres", "passwd"),
+    "dbname": config.get("postgres", "database"),
 }

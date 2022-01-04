@@ -3,6 +3,7 @@ from handle import *
 import subtask
 from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
+import config
 
 
 def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
@@ -26,23 +27,25 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     testList, testOption = subtaskData
     seqCase = subtask.getSeq(testOption)
     isPass = [False for i in range(len(seqCase) + 5)]
+    result = ["" for i in range(len(seqCase) + 5)]
     score = 0
     mxScore = 0
-    result = ""
     sumTime = 0
 
     for testInd in seqCase:
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "["
-                print("[", end="", flush=True)
-            else:
-                result += "("
-                print("(", end="", flush=True)
+        
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "["
+            print("[", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += "("
+            print("(", end="", flush=True)
+
         correct = 0
         isSkiped = False
+
         # Check if it prerequisite when it it contest
-        if submission.contestId and "require" in testOption[testInd]:
+        if (submission.contestId or isTest) and "require" in testOption[testInd]:
             allReq = []
             if type(testOption[testInd]["require"]) == type(69) and testOption[testInd]["require"] <= len(testList):
                 allReq.append(testOption[testInd]["require"])
@@ -57,7 +60,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 allCrt = len(testList[testInd-1])
                 correct = 0
                 print("S"*allCrt, end="", flush=True)
-                result += "S"*allCrt
+                result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
         for x in testList[testInd-1]:
@@ -66,7 +69,8 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 break
 
             testTimeLimit = submission.timeLimit * \
-                langarr[submission.language]["timeFactor"]
+                langarr[submission.language]["timeFactor"] * \
+                float(config.get("grader", "global_time_factor"))
 
             t, elapse = execute(
                 submission.userId,  # User ID
@@ -93,7 +97,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 verdict = "T"
             else:
                 verdict = "X"
-            result += verdict
+            result[testInd] += verdict
             print(verdict, end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
@@ -114,21 +118,22 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
             score += correct
             mxScore += allCorrect
 
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "]"
-                print("]", end="", flush=True)
-            else:
-                result += ")"
-                print(")", end="", flush=True)
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "]"
+            print("]", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += ")"
+            print(")", end="", flush=True)
 
-    if "!" in result:
-        return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+    for testInd in seqCase:
+        if "!" in result[testInd]:
+            return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
 
+    finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
     sumTime //= langarr[submission.language]["timeFactor"]
 
-    return result, finalScore, sumTime, None
+    return finalResult, finalScore, sumTime, None
 
 
 def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
@@ -140,7 +145,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        printHeader("SUBTASK", f"Found custom subtask (But don't use)")
+        printHeader("SUBTASK", f"Found custom subtask (But don't use in codeforce)")
     else:
         subContent = submission.testcase
     mxCase, subtaskData = subtask.compile(subContent)
@@ -156,7 +161,8 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
     for x in range(1, mxCase+1):
 
         testTimeLimit = submission.timeLimit * \
-            langarr[submission.language]["timeFactor"]
+            langarr[submission.language]["timeFactor"] * \
+                float(config.get("grader", "global_time_factor"))
 
         t, elapse = execute(
             submission.userId,  # User ID
@@ -201,7 +207,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
 def start(submission: submissionDTO, srcPath: str, isTest):
 
-    if submission.mode == "classic":
-        return classicEvaluate(submission, srcPath, isTest)
-    elif submission.mode == "codeforces":
+    if submission.mode == "codeforces":
         return cfEvaluate(submission, srcPath, isTest)
+    else:
+        return classicEvaluate(submission, srcPath, isTest)

@@ -9,9 +9,10 @@ from pathlib import Path
 from random import randint
 
 from message import *
+import config
 from constants.command import langarr
 
-MAX_ERROR_LINE = 200
+MAX_ERROR_LINE = int(config.get("grader", "global_time_factor"))
 
 
 def testEnv():
