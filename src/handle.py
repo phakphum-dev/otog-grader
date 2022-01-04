@@ -10,7 +10,7 @@ from random import randint
 
 from message import *
 import config
-from constants.command import langarr
+import cmdManager as langCMD
 
 MAX_ERROR_LINE = int(config.get("grader", "global_time_factor"))
 
@@ -93,7 +93,7 @@ def prepareEnv(problemId):
 
 
 def createSourceCode(sourceCode, language):
-    srcPath = f"""./env/temp{getRandomName(5)}.{langarr[language]["extension"]}"""
+    srcPath = f"""./env/temp{getRandomName(5)}.{langCMD.get(language,"extension")}"""
     fileWrite(srcPath, sourceCode)
     return srcPath
 
@@ -103,6 +103,7 @@ def create(userId, language, sourcePath, problemId):
     commandData = None
     compilecmd = None
 
+    #? check problem's custom command.yaml
     if os.path.exists(f"source/{problemId}/command.yaml"):
         try:
             with open(f"source/{problemId}/command.yaml", "r") as f:
@@ -114,21 +115,24 @@ def create(userId, language, sourcePath, problemId):
     if type(commandData) == type(dict()):
         if language in commandData:
             if "compile" in commandData[language]:
-                compilecmd = commandData[language]["compile"].replace(
-                    "[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
+                compilecmd = commandData[language]["compile"]
             else:
                 printWarning(
                     "COMPILE", f"'compile' not found in lang {language}")
-
         else:
             printWarning("COMPILE", f"{language} not found in command.yaml")
 
     result = None
     if compilecmd == None:
-        compilecmd = langarr[language]["compile"].replace(
-            "[sourcePath]", sourcePath)
+        compilecmd = langCMD.get(language,"compile")
     else:
         printHeader("COMPILE", f"use command from command.yaml")
+    compilecmd = compilecmd.replace("[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
+    
+    #TODO : implement for isolate
+    compilecmd = compilecmd.replace("[binPath]", "env/out")
+    print(">>>>>>>",compilecmd)
+
     os.system(compilecmd)
 
     if language == "python":
@@ -156,14 +160,20 @@ def errMsgHandle(errMes: str) -> str:
             errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
     return errMes
 
+#TODO : implement for isolate
 
 def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath):
     inputFile = (
         f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
     )
-    cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langarr[language]['execute']}; exit;"
-    cmd = cmd.replace("[inputfile]", inputFile)
+    cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
+    cmd = cmd.replace("[ioRedirect]", inputFile)
     cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
+
+    
+    cmd = cmd.replace("[binPath]", "./out")
+    cmd = cmd.replace("[bash]", "")
+    
     os.system("chmod 500 env")
     os.system("chmod 775 env/error.txt")
     os.system("chmod 775 env/output.txt")

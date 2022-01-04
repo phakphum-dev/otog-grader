@@ -5,6 +5,8 @@ from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
 import config
 
+import cmdManager as langCMD
+
 
 def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     judgeType = getTypeJudge(submission.problemId)
@@ -69,7 +71,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 break
 
             testTimeLimit = submission.timeLimit * \
-                langarr[submission.language]["timeFactor"] * \
+                langCMD.get(submission.language, "timeFactor") * \
                 float(config.get("grader", "global_time_factor"))
 
             t, elapse = execute(
@@ -131,7 +133,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
     finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
-    sumTime //= langarr[submission.language]["timeFactor"]
+    sumTime //= langCMD.get(submission.language, "timeFactor")
 
     return finalResult, finalScore, sumTime, None
 
@@ -161,7 +163,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
     for x in range(1, mxCase+1):
 
         testTimeLimit = submission.timeLimit * \
-            langarr[submission.language]["timeFactor"] * \
+            langCMD(submission.language, "timeFactor") * \
                 float(config.get("grader", "global_time_factor"))
 
         t, elapse = execute(
@@ -193,14 +195,14 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
         if result != "Accepted":
             print(f"\n         ", result, flush=True)
-            resultTime //= langarr[submission.language]["timeFactor"]
+            resultTime //= langCMD(submission.language, "timeFactor")
             return result, 0, resultTime, None
         else:
             print('P', end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
 
-    resultTime //= langarr[submission.language]["timeFactor"]
+    resultTime //= langCMD(submission.language, "timeFactor")
 
     return result, submission.mxScore, resultTime, None
 
