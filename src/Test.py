@@ -41,8 +41,6 @@ if __name__ == "__main__":
     testCaseConfig = configparser.ConfigParser()
     testCaseConfig.read("testCodeDB.ini")
 
-    os.system("clear")
-
     def isInt(somStr: str) -> bool:
         try:
             int(somStr)
