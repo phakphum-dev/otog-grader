@@ -162,7 +162,6 @@ Thumbs.db #thumbnail cache on Windows
 .vscode
 
 config.ini
-runTest.sh
 testCodes
 testCodeDB.ini
 source
