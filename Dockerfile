@@ -34,13 +34,7 @@ RUN make --directory=isolate install
 #RUN chown otog:otog /usr/src/app
 
 COPY --from=build /usr/src/app/venv ./venv
-COPY config.ini ./
-COPY command.yaml ./
-COPY src/ ./src
-
-#For test mode
-COPY testCodes ./testCodes
-COPY testCodeDB.ini ./
+COPY . .
 
 #USER otog
 
