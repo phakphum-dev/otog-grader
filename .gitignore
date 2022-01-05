@@ -165,3 +165,5 @@ config.ini
 testCodes
 testCodeDB.ini
 source
+command.yaml
+dummy.py

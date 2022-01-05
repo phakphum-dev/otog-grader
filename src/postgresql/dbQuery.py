@@ -64,7 +64,8 @@ def updateRunningInCase(resultId, case):
     db.update()
 
 
-def updateResult(resultId, result, score, sumTime, errmsg):
+def updateResult(resultId, result, score, sumTime, memUse, errmsg):
+    #TODO : Imprement memUse in DB
     sql = """UPDATE submission SET result = %s, score = %s, "timeUsed" = %s, 
             status = %s, errmsg = %s, "updateDate" = %s WHERE id = %s"""
     status = "accept" if all(

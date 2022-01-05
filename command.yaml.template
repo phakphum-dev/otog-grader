@@ -1,0 +1,16 @@
+version: 1
+c:
+  compile: "gcc [sourcePath] -O2 -std=c17 -fomit-frame-pointer -Wunused-result -o [binPath] 2>[env]/error.txt"
+  execute: "[binPath] [ioRedirect]"
+  extension: c
+  timeFactor: 1
+cpp:
+  compile: "g++ [sourcePath] -O2 -std=c++17 -fomit-frame-pointer -Wunused-result -o [binPath] 2>[env]/error.txt"
+  execute: "[binPath] [ioRedirect]"
+  extension: cpp
+  timeFactor: 1
+python:
+  compile: "python3 -m py_compile [sourcePath] 2>[env]/error.txt"
+  execute: "[uBin]python3 [sourcePath] [ioRedirect]"
+  extension: py
+  timeFactor: 5

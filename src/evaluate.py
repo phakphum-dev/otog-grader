@@ -5,8 +5,10 @@ from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
 import config
 
+import cmdManager as langCMD
 
-def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
+
+def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("GRADER", f"use {judgeType} Judge...")
@@ -31,6 +33,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     score = 0
     mxScore = 0
     sumTime = 0
+    mxMem = 0
 
     for testInd in seqCase:
         
@@ -69,23 +72,25 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 break
 
             testTimeLimit = submission.timeLimit * \
-                langarr[submission.language]["timeFactor"] * \
+                langCMD.get(submission.language, "timeFactor") * \
                 float(config.get("grader", "global_time_factor"))
 
-            t, elapse = execute(
+            t, elapse, memUse = execute(
                 submission.userId,  # User ID
                 submission.problemId,  # Problem ID
                 x,  # Index of testcase
                 testTimeLimit,  # Time limit
                 (submission.memoryLimit) * 1024,  # Memory limit (in kb)
                 submission.language,  # Language
-                srcPath
+                srcPath,
+                isoPath
             )
-
             userOutputPath = "env/output.txt"
+
             probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
             sumTime += elapse * 1000
+            mxMem = max(mxMem, memUse)
             errCode = error(t)
             if not errCode:
                 verdict = getVerdict(
@@ -131,12 +136,12 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
     finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
-    sumTime //= langarr[submission.language]["timeFactor"]
+    sumTime //= langCMD.get(submission.language, "timeFactor")
 
-    return finalResult, finalScore, sumTime, None
+    return finalResult, finalScore, sumTime, mxMem, None
 
 
-def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
+def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("Codeforces", f"Evaluate with Codeforces standard")
@@ -157,27 +162,30 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
     print("\t-> Result: ", end="", flush=True)
     result = "Accepted"
     resultTime = 0
+    resultMem = 0
 
     for x in range(1, mxCase+1):
 
         testTimeLimit = submission.timeLimit * \
-            langarr[submission.language]["timeFactor"] * \
+            langCMD(submission.language, "timeFactor") * \
                 float(config.get("grader", "global_time_factor"))
 
-        t, elapse = execute(
+        t, elapse, memUse = execute(
             submission.userId,  # User ID
             submission.problemId,  # Problem ID
             x,  # Index of testcase
             testTimeLimit,  # Time limit
             (submission.memoryLimit) * 1024,  # Memory limit (in kb)
             submission.language,  # Language
-            srcPath
+            srcPath,
+            isoPath
         )
 
         userOutputPath = "env/output.txt"
         probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
         resultTime = max(resultTime, elapse * 1000)
+        resultMem = max(resultMem, memUse)
         errCode = error(t)
         verdict = ":)"
         if not errCode:
@@ -193,21 +201,21 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
         if result != "Accepted":
             print(f"\n         ", result, flush=True)
-            resultTime //= langarr[submission.language]["timeFactor"]
-            return result, 0, resultTime, None
+            resultTime //= langCMD(submission.language, "timeFactor")
+            return result, 0, resultTime, resultMem, None
         else:
             print('P', end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
 
-    resultTime //= langarr[submission.language]["timeFactor"]
+    resultTime //= langCMD(submission.language, "timeFactor")
 
-    return result, submission.mxScore, resultTime, None
+    return result, submission.mxScore, resultTime, resultMem, None
 
 
-def start(submission: submissionDTO, srcPath: str, isTest):
+def start(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
     if submission.mode == "codeforces":
-        return cfEvaluate(submission, srcPath, isTest)
+        return cfEvaluate(submission, srcPath, isTest, isoPath)
     else:
-        return classicEvaluate(submission, srcPath, isTest)
+        return classicEvaluate(submission, srcPath, isTest, isoPath)
