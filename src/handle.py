@@ -12,7 +12,7 @@ from message import *
 import config
 import cmdManager as langCMD
 
-MAX_ERROR_LINE = int(config.get("grader", "global_time_factor"))
+MAX_ERROR_LINE = int(config.get("grader", "max_error_line"))
 
 
 def testEnv():
@@ -213,7 +213,7 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourc
         inputFile = f"< ../source/{problemId}/{testcase}.in"
         cmd = "cd env; "
         cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
-        cmd += f"--time={timeLimit / 1000} --cg-mem={memoryLimit} "
+        cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
         cmd += f"--run -- {langCMD.get(language,'execute')} "
         cmd += f"{inputFile} ; exit"
 
