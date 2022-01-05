@@ -3,6 +3,7 @@ services:
   grader:
     build: .
     container_name: otog-grader
+    privileged: true
     volumes:
       - ./source:/usr/src/app/source:ro
     networks:

@@ -3,9 +3,12 @@ from handle import *
 import subtask
 from postgresql.dbQuery import updateResult, updateRunningInCase
 import constants as const
+import config
+
+import cmdManager as langCMD
 
 
-def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
+def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("GRADER", f"use {judgeType} Judge...")
@@ -26,23 +29,26 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
     testList, testOption = subtaskData
     seqCase = subtask.getSeq(testOption)
     isPass = [False for i in range(len(seqCase) + 5)]
+    result = ["" for i in range(len(seqCase) + 5)]
     score = 0
     mxScore = 0
-    result = ""
     sumTime = 0
+    mxMem = 0
 
     for testInd in seqCase:
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "["
-                print("[", end="", flush=True)
-            else:
-                result += "("
-                print("(", end="", flush=True)
+        
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "["
+            print("[", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += "("
+            print("(", end="", flush=True)
+
         correct = 0
         isSkiped = False
+
         # Check if it prerequisite when it it contest
-        if submission.contestId and "require" in testOption[testInd]:
+        if (submission.contestId or isTest) and "require" in testOption[testInd]:
             allReq = []
             if type(testOption[testInd]["require"]) == type(69) and testOption[testInd]["require"] <= len(testList):
                 allReq.append(testOption[testInd]["require"])
@@ -57,7 +63,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 allCrt = len(testList[testInd-1])
                 correct = 0
                 print("S"*allCrt, end="", flush=True)
-                result += "S"*allCrt
+                result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
         for x in testList[testInd-1]:
@@ -66,22 +72,25 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 break
 
             testTimeLimit = submission.timeLimit * \
-                langarr[submission.language]["timeFactor"]
+                langCMD.get(submission.language, "timeFactor") * \
+                float(config.get("grader", "global_time_factor"))
 
-            t, elapse = execute(
+            t, elapse, memUse = execute(
                 submission.userId,  # User ID
                 submission.problemId,  # Problem ID
                 x,  # Index of testcase
                 testTimeLimit,  # Time limit
                 (submission.memoryLimit) * 1024,  # Memory limit (in kb)
                 submission.language,  # Language
-                srcPath
+                srcPath,
+                isoPath
             )
-
             userOutputPath = "env/output.txt"
+
             probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
             sumTime += elapse * 1000
+            mxMem = max(mxMem, memUse)
             errCode = error(t)
             if not errCode:
                 verdict = getVerdict(
@@ -93,7 +102,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
                 verdict = "T"
             else:
                 verdict = "X"
-            result += verdict
+            result[testInd] += verdict
             print(verdict, end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
@@ -114,24 +123,25 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest):
             score += correct
             mxScore += allCorrect
 
-        if len(seqCase) != 1:
-            if "group" in testOption[testInd] and testOption[testInd]["group"]:
-                result += "]"
-                print("]", end="", flush=True)
-            else:
-                result += ")"
-                print(")", end="", flush=True)
+        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+            result[testInd] += "]"
+            print("]", end="", flush=True)
+        elif len(seqCase) != 1:
+            result[testInd] += ")"
+            print(")", end="", flush=True)
 
-    if "!" in result:
-        return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+    for testInd in seqCase:
+        if "!" in result[testInd]:
+            return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
 
+    finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
-    sumTime //= langarr[submission.language]["timeFactor"]
+    sumTime //= langCMD.get(submission.language, "timeFactor")
 
-    return result, finalScore, sumTime, None
+    return finalResult, finalScore, sumTime, mxMem, None
 
 
-def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
+def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("Codeforces", f"Evaluate with Codeforces standard")
@@ -140,7 +150,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        printHeader("SUBTASK", f"Found custom subtask (But don't use)")
+        printHeader("SUBTASK", f"Found custom subtask (But don't use in codeforce)")
     else:
         subContent = submission.testcase
     mxCase, subtaskData = subtask.compile(subContent)
@@ -152,26 +162,30 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
     print("\t-> Result: ", end="", flush=True)
     result = "Accepted"
     resultTime = 0
+    resultMem = 0
 
     for x in range(1, mxCase+1):
 
         testTimeLimit = submission.timeLimit * \
-            langarr[submission.language]["timeFactor"]
+            langCMD(submission.language, "timeFactor") * \
+                float(config.get("grader", "global_time_factor"))
 
-        t, elapse = execute(
+        t, elapse, memUse = execute(
             submission.userId,  # User ID
             submission.problemId,  # Problem ID
             x,  # Index of testcase
             testTimeLimit,  # Time limit
             (submission.memoryLimit) * 1024,  # Memory limit (in kb)
             submission.language,  # Language
-            srcPath
+            srcPath,
+            isoPath
         )
 
         userOutputPath = "env/output.txt"
         probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
         resultTime = max(resultTime, elapse * 1000)
+        resultMem = max(resultMem, memUse)
         errCode = error(t)
         verdict = ":)"
         if not errCode:
@@ -187,21 +201,21 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest):
 
         if result != "Accepted":
             print(f"\n         ", result, flush=True)
-            resultTime //= langarr[submission.language]["timeFactor"]
-            return result, 0, resultTime, None
+            resultTime //= langCMD(submission.language, "timeFactor")
+            return result, 0, resultTime, resultMem, None
         else:
             print('P', end="", flush=True)
             if not isTest:
                 updateRunningInCase(submission.id, x)
 
-    resultTime //= langarr[submission.language]["timeFactor"]
+    resultTime //= langCMD(submission.language, "timeFactor")
 
-    return result, submission.mxScore, resultTime, None
+    return result, submission.mxScore, resultTime, resultMem, None
 
 
-def start(submission: submissionDTO, srcPath: str, isTest):
+def start(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
-    if submission.mode == "classic":
-        return classicEvaluate(submission, srcPath, isTest)
-    elif submission.mode == "codeforces":
-        return cfEvaluate(submission, srcPath, isTest)
+    if submission.mode == "codeforces":
+        return cfEvaluate(submission, srcPath, isTest, isoPath)
+    else:
+        return classicEvaluate(submission, srcPath, isTest, isoPath)

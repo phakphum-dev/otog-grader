@@ -1,0 +1,5 @@
+#this file will simulate a problem data-base
+[1]
+TestCase = 10   # #testcase  (required)
+Memory = 256    # memory in mb (optional)
+Time = 1        # time in seconds (optional)

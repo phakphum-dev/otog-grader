@@ -1,8 +1,8 @@
 from constants.colors import colors
 
 
-def bigPrint(header, text, color):
-    print(f"[ {color}{header}{colors.RESET} ] {text}")
+def bigPrint(header:str, text, color):
+    print(f"[ {color}{header.upper()}{colors.RESET} ] {text}")
 
 
 def printBlod(header, text):

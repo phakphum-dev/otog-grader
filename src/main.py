@@ -14,11 +14,12 @@ import evaluate
 def startJudge(queueData, isTest: bool = False):
     global updateResult
     if isTest:
-        def updateResult(subName, result, score, timeLen, comment):
+        def updateResult(subName, result, score, timeLen, memUse, comment):
             print(f"\n\n-------------End of submit {subName}-------------")
             print(f"result : {result}")
             print(f"score : {score}")
             print(f"timeLen : {timeLen}")
+            print(f"memUse : {memUse}")
             print(f"comment : {comment}")
             print(f"-----------------------------------------------")
 
@@ -48,6 +49,7 @@ def startJudge(queueData, isTest: bool = False):
             "No nCase",
             0,
             0,
+            0,
             "Number of testcase does not specified. Flame admins, kiddos. :(",
         )
         return
@@ -58,6 +60,7 @@ def startJudge(queueData, isTest: bool = False):
         updateResult(
             submission.id,
             "No Testcase",
+            0,
             0,
             0,
             "Admins have not yet upload the testcases. Go ahead and flame them.",
@@ -75,45 +78,58 @@ def startJudge(queueData, isTest: bool = False):
     #         "Undecodable",
     #         0,
     #         0,
+    #         69,
     #         "Cannot decode your submitted code. Check your submission.",
     #     )
     #     return
 
-    prepareEnv(submission.problemId)
+    #? check and init isolate
+    isolateEnvPath = None #! None means didn't use isolate
+    if config.getAsBool("grader", "use_isolate"):
+        isolateEnvPath = initIsolate()
+    
+
+    prepareEnv(submission.problemId, isolateEnvPath)
 
     # Write source string to file
-    srcCodePath = createSourceCode(submission.sourceCode, submission.language)
+    srcCodePath = createSourceCode(submission.sourceCode, submission.language, isolateEnvPath)
 
     # Compile
     err = create(submission.userId, submission.language,
-                 srcCodePath, submission.problemId)
+                 srcCodePath, submission.problemId, isolateEnvPath)
 
     # If compile error
     if err:
         printOKCyan("GRADER", "Compile error.")
         try:
-            errmsg = fileRead("env/error.txt") or None
+            if isolateEnvPath != None:
+                errmsg = fileRead(f"{isolateEnvPath}/error.txt") or None
+            else:
+                errmsg = fileRead("env/error.txt") or None
+
         except:
             errmsg = "Someting went wrong."
 
         if errmsg != None:
             errmsg = errMsgHandle(errmsg)
 
-        updateResult(submission.id, err, 0, 0, errmsg)
+        updateResult(submission.id, err, 0, 0, 0, errmsg)
         return
 
-    result, finalScore, sumTime, comment = evaluate.start(
-        submission, srcCodePath, isTest)
+    result, finalScore, sumTime, resMem, comment = evaluate.start(
+        submission, srcCodePath, isTest, isolateEnvPath)
     updateResult(
         submission.id,
         result,
         finalScore,
         sumTime,
+        resMem,
         comment,
     )
 
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
+        print(f"\t-> Mem  used: {int(resMem)} kb??")
 
 
 def main():
