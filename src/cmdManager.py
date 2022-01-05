@@ -8,10 +8,6 @@ import message as mes
 useConfigFrom = "constants"
 commandData = None
 
-with open(f"./command.yaml", "r") as f:
-    command = f.read()
-commandData = yaml.load(command, Loader=yaml.FullLoader)
-
 if os.path.exists(f"./command.yaml"):
     try:
         with open(f"./command.yaml", "r") as f:

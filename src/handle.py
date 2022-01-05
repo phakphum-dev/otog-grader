@@ -19,6 +19,32 @@ def testEnv():
     if not path.exists("env"):
         os.mkdir("env")
 
+def initIsolate():
+
+    os.system("isolate --cg --cleanup")
+
+    p = subprocess.Popen("isolate --cg --init",shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pData = p.communicate()
+    boxPath = pData[0].decode().strip()
+    stdErr = pData[1].decode().strip()
+    returnCode = p.returncode
+
+    if returnCode != 0:
+        printFail("isolate","Can't init")
+        print(stdErr)
+        printBlod("isolate","isolate isn't used")
+        return None
+    return boxPath + "/box"
+
+def isolateMetaReader(content:str):
+    content = content.strip().split("\n")
+    resultData = dict()
+    for line in content:
+        if line.find(":") != 1:
+            chunk = line.split(":")
+            resultData[chunk[0].strip()] = ":".join(chunk[1:]).strip()
+    
+    return resultData
 
 def fileRead(filename):
     try:
@@ -72,33 +98,47 @@ def getRandomName(lenAl: int):
     return result
 
 
-def prepareEnv(problemId):
+def prepareEnv(problemId, isoPath):
 
-    # clear env
+    if isoPath != None:
+        # Grab custom library
+        problemFile = os.listdir(f"./source/{problemId}")
+        for ffile in problemFile:
+            if ffile.endswith(".c") or ffile.endswith(".h") \
+                    or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
+                    or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
+                os.system(f"cp ./source/{problemId}/{ffile} {isoPath}/")
+    else:
 
-    if path.exists("env/__pycache__"):
-        os.system(f"rm -r env/__pycache__")
+        # clear env
+        if path.exists("env/__pycache__"):
+            os.system(f"rm -r env/__pycache__")
 
-    envFiles = os.listdir("env/")
-    for ffile in envFiles:
-        os.system(f"rm env/{ffile}")
+        envFiles = os.listdir("env/")
+        for ffile in envFiles:
+            os.system(f"rm env/{ffile}")
 
-    # Grab custom script
-    problemFile = os.listdir(f"./source/{problemId}")
-    for ffile in problemFile:
-        if ffile.endswith(".c") or ffile.endswith(".h") \
-                or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
-                or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
-            os.system(f"cp ./source/{problemId}/{ffile} ./env/")
+        # Grab custom library
+        problemFile = os.listdir(f"./source/{problemId}")
+        for ffile in problemFile:
+            if ffile.endswith(".c") or ffile.endswith(".h") \
+                    or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
+                    or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
+                os.system(f"cp ./source/{problemId}/{ffile} ./env/")
 
 
-def createSourceCode(sourceCode, language):
-    srcPath = f"""./env/temp{getRandomName(5)}.{langCMD.get(language,"extension")}"""
+def createSourceCode(sourceCode, language, isoPath):
+    
+    resPath = "./env"
+    if isoPath != None:
+        resPath = isoPath
+
+    srcPath = f"""{resPath}/temp{getRandomName(5)}.{langCMD.get(language,"extension")}"""
     fileWrite(srcPath, sourceCode)
     return srcPath
 
 
-def create(userId, language, sourcePath, problemId):
+def create(userId, language, sourcePath, problemId, isoPath):
 
     commandData = None
     compilecmd = None
@@ -122,30 +162,35 @@ def create(userId, language, sourcePath, problemId):
         else:
             printWarning("COMPILE", f"{language} not found in command.yaml")
 
-    result = None
     if compilecmd == None:
         compilecmd = langCMD.get(language,"compile")
     else:
         printHeader("COMPILE", f"use command from command.yaml")
     compilecmd = compilecmd.replace("[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
     
-    #TODO : implement for isolate
-    compilecmd = compilecmd.replace("[binPath]", "env/out")
-    print(">>>>>>>",compilecmd)
+   
+
+    if isoPath != None:
+        compilecmd = compilecmd.replace("[binPath]", f"{isoPath}/out")
+        realEnv = isoPath
+    else:
+        compilecmd = compilecmd.replace("[binPath]", "env/out")
+        realEnv = "env"
+    compilecmd = compilecmd.replace("[env]", realEnv)
 
     os.system(compilecmd)
 
     if language == "python":
-        if os.path.exists("env/error.txt") and fileRead("env/error.txt").strip():
+        if os.path.exists(f"{realEnv}/error.txt") and fileRead(f"{realEnv}/error.txt").strip():
             return "Compilation Error"
     else:
-        if not os.path.exists("env/out"):
+        if not os.path.exists(f"{realEnv}/out"):
             return "Compilation Error"
 
     # prepare output and error text file
     os.system("touch env/error.txt")
     os.system("touch env/output.txt")
-    return result
+    return None
 
 
 def errMsgHandle(errMes: str) -> str:
@@ -160,36 +205,94 @@ def errMsgHandle(errMes: str) -> str:
             errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
     return errMes
 
-#TODO : implement for isolate
 
-def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath):
-    inputFile = (
-        f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
-    )
-    cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
-    cmd = cmd.replace("[ioRedirect]", inputFile)
-    cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
+def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath):
+    
+    if isoPath != None: #? Use isolate to execute
+        
+        inputFile = f"< ../source/{problemId}/{testcase}.in"
+        cmd = "cd env; "
+        cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
+        cmd += f"--time={timeLimit / 1000} --cg-mem={memoryLimit} "
+        cmd += f"--run -- {langCMD.get(language,'execute')} "
+        cmd += f"{inputFile} ; exit"
 
+        cmd = cmd.replace("[ioRedirect]", "")
+        cmd = cmd.replace("[sourcePath]", sourcePath.replace(f"{isoPath}/", ""))
+        cmd = cmd.replace("[binPath]", "./out")
+        cmd = cmd.replace("[uBin]", "/usr/bin/")
+
+        p = subprocess.Popen(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.communicate()
+
+        if not os.path.exists(f"env/isoResult.txt"):
+            printFail("GRADER","isoResult.txt not found")
+            printFail("GRADER","ABORT PROCESS!!!")
+            exit(1)
+        
+        try:
+            with open(f"env/isoResult.txt", "r") as f:
+                isoResult = f.read()
+            isoResult = isolateMetaReader(isoResult)
+        except:
+            printFail("GRADER","can't read isoResult.txt")
+            printFail("GRADER","ABORT PROCESS!!!")
+            exit(1)
+        
+        
+        if "status" in isoResult and isoResult["status"] == "XX":
+            printFail("GRADER","internal error of the sandbox")
+            printFail("GRADER","ABORT PROCESS!!!")
+            exit(1)
+        
+        if "status" in isoResult and isoResult["status"] == "TO":
+            exitCode = 124
+        elif "exitsig" in isoResult:
+            exitCode = int(isoResult["exitsig"])
+        elif "exitcode" in isoResult:
+            exitCode = int(isoResult["exitcode"])
+        else:
+            exitCode = 0
+
+        timeUse = float(isoResult["time"])
+        memUse = int(isoResult["cg-mem"]) #TODO : CHECK IS IT RIGHT?
+        os.system("chmod 500 env")
+        os.system("chmod 775 env/output.txt")
+        os.system("chmod 775 env/error.txt")
+        os.system(f"cp {isoPath}/output.txt env/output.txt")
+        os.system(f"cp {isoPath}/error.txt env/error.txt")
+
+
+        return exitCode, timeUse, memUse
+    else:
     
-    cmd = cmd.replace("[binPath]", "./out")
-    cmd = cmd.replace("[bash]", "")
-    
-    os.system("chmod 500 env")
-    os.system("chmod 775 env/error.txt")
-    os.system("chmod 775 env/output.txt")
-    starttime = time.time()
-    proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
-    try:
-        proc.communicate(timeout=(timeLimit / 1000))
-        t = proc.returncode
-    except subprocess.TimeoutExpired:
-        t = 124
-    endtime = time.time()
-    timediff = endtime - starttime
-    if os.path.exists("/proc/" + str(proc.pid)):
-        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-    os.system("chmod -R 750 env")
-    return t, timediff
+        ioFile = (
+            f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
+        )
+        cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
+        cmd = cmd.replace("[ioRedirect]", ioFile)
+        cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
+
+        
+        cmd = cmd.replace("[binPath]", "./out")
+        cmd = cmd.replace("[uBin]", "")
+        
+        os.system("chmod 500 env")
+        os.system("chmod 775 env/error.txt")
+        os.system("chmod 775 env/output.txt")
+        starttime = time.time()
+        proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
+        try:
+            proc.communicate(timeout=(timeLimit / 1000))
+            t = proc.returncode
+        except subprocess.TimeoutExpired:
+            t = 124
+        endtime = time.time()
+        timediff = endtime - starttime
+        if os.path.exists("/proc/" + str(proc.pid)):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        os.system("chmod -R 750 env")
+        return t, timediff, None
 
 
 def stdcmpfunc(fname1, fname2):

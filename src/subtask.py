@@ -45,7 +45,7 @@ def validRequire(data):
                         inOrder[x] += 1
 
     while True:
-        zero = -1
+        zero = None
         isCom = True
 
         for i in range(n):
@@ -54,7 +54,7 @@ def validRequire(data):
             elif inOrder[i+1] != 0:
                 isCom = False
 
-        if zero == -1 and not isCom:  # no Topo
+        if zero == None and not isCom:  # no Topo
             return False
 
         if isCom:

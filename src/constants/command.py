@@ -1,4 +1,4 @@
-ioerr = " 2>env/error.txt"
+ioerr = " 2>[env]/error.txt"
 version = 1
 langarr = {
     "c": {
@@ -18,7 +18,7 @@ langarr = {
     "python": {
         "extension": "py",
         "compile": "python3 -m py_compile [sourcePath]" + ioerr,
-        "execute": "[bash]python3 [sourcePath] [ioRedirect]",
+        "execute": "[uBin]python3 [sourcePath] [ioRedirect]",
         "timeFactor": 5,
     },
 }
