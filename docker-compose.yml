@@ -5,7 +5,7 @@ services:
     container_name: otog-grader
     privileged: true
     volumes:
-      - ./source:/usr/src/app/source:ro
+      - ./source:/usr/src/app/source:rw
     networks:
       - otog-network
 
