@@ -129,7 +129,7 @@ def startJudge(queueData, isTest: bool = False):
 
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
-        print(f"\t-> Mem  used: {int(resMem)} kb??")
+        print(f"\t-> Mem  used: {int(resMem or -1)} kb??")
 
 
 def main():
