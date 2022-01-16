@@ -99,7 +99,7 @@ def startJudge(queueData, isTest: bool = False):
                  srcCodePath, submission.problemId, isolateEnvPath)
 
     # If compile error
-    if err:
+    if err == "Compilation Error":
         printOKCyan("GRADER", "Compile error.")
         try:
             if isolateEnvPath != None:
@@ -115,6 +115,10 @@ def startJudge(queueData, isTest: bool = False):
 
         updateResult(submission.id, err, 0, 0, 0, errmsg)
         return
+    elif err == "Compilation TLE":
+        printWarning("GRADER", "Compile Time Limit Exceeded.")
+        updateResult(submission.id, "Compilation Error", 0, 0, 0, "Compilation Time Limit Exceeded")
+        return
 
     result, finalScore, sumTime, resMem, comment = evaluate.start(
         submission, srcCodePath, isTest, isolateEnvPath)
@@ -129,7 +133,7 @@ def startJudge(queueData, isTest: bool = False):
 
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
-        print(f"\t-> Mem  used: {int(resMem)} kb??")
+        print(f"\t-> Mem  used: {int(resMem or -1)} kb??")
 
 
 def main():
