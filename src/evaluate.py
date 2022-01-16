@@ -33,7 +33,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     score = 0
     mxScore = 0
     sumTime = 0
-    mxMem = 0
+    mxMem = None
 
     for testInd in seqCase:
         
@@ -90,7 +90,11 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
             probOutputPath = f"./source/{submission.problemId}/{x}.sol"
 
             sumTime += elapse * 1000
-            mxMem = max(mxMem, memUse)
+            if memUse != None:
+                if mxMem == None:
+                    mxMem = memUse
+                else:
+                    mxMem = max(mxMem, memUse)
             errCode = error(t)
             if not errCode:
                 verdict = getVerdict(

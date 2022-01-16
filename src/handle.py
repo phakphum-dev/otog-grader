@@ -12,7 +12,7 @@ from message import *
 import config
 import cmdManager as langCMD
 
-MAX_ERROR_LINE = int(config.get("grader", "global_time_factor"))
+MAX_ERROR_LINE = int(config.get("grader", "max_error_line"))
 
 
 def testEnv():
@@ -178,7 +178,19 @@ def create(userId, language, sourcePath, problemId, isoPath):
         realEnv = "env"
     compilecmd = compilecmd.replace("[env]", realEnv)
 
-    os.system(compilecmd)
+
+    #? Compile With time limit of 30 seconds
+    isTLE = False
+    proc = subprocess.Popen([compilecmd], shell=True, preexec_fn=os.setsid)
+    try:
+        proc.communicate(timeout=30)
+    except subprocess.TimeoutExpired:
+        isTLE = True
+    if os.path.exists("/proc/" + str(proc.pid)):
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    
+    if isTLE:
+        return "Compilation TLE"
 
     if language == "python":
         if os.path.exists(f"{realEnv}/error.txt") and fileRead(f"{realEnv}/error.txt").strip():
@@ -213,7 +225,7 @@ def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourc
         inputFile = f"< ../source/{problemId}/{testcase}.in"
         cmd = "cd env; "
         cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
-        cmd += f"--time={timeLimit / 1000} --cg-mem={memoryLimit} "
+        cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
         cmd += f"--run -- {langCMD.get(language,'execute')} "
         cmd += f"{inputFile} ; exit"
 
