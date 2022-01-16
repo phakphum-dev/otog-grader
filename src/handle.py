@@ -178,7 +178,19 @@ def create(userId, language, sourcePath, problemId, isoPath):
         realEnv = "env"
     compilecmd = compilecmd.replace("[env]", realEnv)
 
-    os.system(compilecmd)
+
+    #? Compile With time limit of 30 seconds
+    isTLE = False
+    proc = subprocess.Popen([compilecmd], shell=True, preexec_fn=os.setsid)
+    try:
+        proc.communicate(timeout=30)
+    except subprocess.TimeoutExpired:
+        isTLE = True
+    if os.path.exists("/proc/" + str(proc.pid)):
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    
+    if isTLE:
+        return "Compilation TLE"
 
     if language == "python":
         if os.path.exists(f"{realEnv}/error.txt") and fileRead(f"{realEnv}/error.txt").strip():
