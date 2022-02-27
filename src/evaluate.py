@@ -25,6 +25,12 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
         printFail("SUBTASK", f"Subtask error : {subtaskData}")
         return "Judge Error", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
 
+    # Invalid number of testcase
+    if mxCase <= 0:
+        printFail("GRADER", "Invalid number of testcase.")
+        return "Invalid nCase", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
+        
+
     print("\t-> Result: ", end="", flush=True)
     testList, testOption = subtaskData
     seqCase = subtask.getSeq(testOption)
@@ -162,6 +168,11 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     if mxCase == -1:
         printFail("SUBTASK", f"Subtask error : {subtaskData}")
         return "Judge Error", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
+
+    # Invalid number of testcase
+    if mxCase <= 0:
+        printFail("GRADER", "Invalid number of testcase.")
+        return "Invalid nCase", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
 
     print("\t-> Result: ", end="", flush=True)
     result = "Accepted"
