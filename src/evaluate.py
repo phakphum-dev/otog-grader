@@ -23,12 +23,12 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
     if mxCase == -1:
         printFail("SUBTASK", f"Subtask error : {subtaskData}")
-        return "Judge Error", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
+        return "Judge Error", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
 
     # Invalid number of testcase
     if mxCase <= 0:
         printFail("GRADER", "Invalid number of testcase.")
-        return "Invalid nCase", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
+        return "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
         
 
     print("\t-> Result: ", end="", flush=True)
@@ -142,7 +142,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
     for testInd in seqCase:
         if "!" in result[testInd]:
-            return "Judge Error", 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+            return "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
 
     finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
@@ -167,12 +167,12 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
     if mxCase == -1:
         printFail("SUBTASK", f"Subtask error : {subtaskData}")
-        return "Judge Error", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
+        return "Judge Error", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}",
 
     # Invalid number of testcase
     if mxCase <= 0:
         printFail("GRADER", "Invalid number of testcase.")
-        return "Invalid nCase", 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
+        return "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
 
     print("\t-> Result: ", end="", flush=True)
     result = "Accepted"
