@@ -54,6 +54,19 @@ def startJudge(queueData, isTest: bool = False):
         )
         return
 
+    # If does not specify number of testcase
+    if submission.testcase <= 0:
+        printFail("GRADER", "Invalid number of testcase.")
+        updateResult(
+            submission.id,
+            "No nCase",
+            0,
+            0,
+            0,
+            "Invalid number of testcase. Flame admins, kiddos. :(",
+        )
+        return
+
     # Check if testcases actually exist
     if not Path(f"./source/{submission.problemId}").is_dir():
         printFail("GRADER", "No testcase. Aborted.")
