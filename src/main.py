@@ -110,8 +110,11 @@ def startJudge(queueData, isTest: bool = False):
         except:
             errmsg = "Someting went wrong."
 
-        if errmsg != None:
+        if errmsg:
             errmsg = errMsgHandle(errmsg)
+        else:
+            errmsg = "Someting went wrong.\nContact admin immediately :( !!"
+            
 
         updateResult(submission.id, err, 0, 0, 0, errmsg)
         return
