@@ -66,6 +66,22 @@ def startJudge(queueData, isTest: bool = False):
             "Admins have not yet upload the testcases. Go ahead and flame them.",
         )
         return
+    
+    for case in range(int(submission.testcase)):
+        if not Path(f"./source/{submission.problemId}/{case + 1}.in").is_file():
+            printFail("TESTCASE", f"Testcase {case + 1}.in is missing")
+            updateResult(
+                submission.id,
+                "Input missing",
+                0,
+                0,
+                0,
+                "Admins have not yet upload the testcases. Go ahead and flame them.",
+            )
+            return
+        
+        if not Path(f"./source/{submission.problemId}/{case + 1}.sol").is_file():
+            printWarning("TESTCASE", f"Testcase {case + 1}.sol is missing")
 
     printHeader("GRADER", "Compiling process...")
 
