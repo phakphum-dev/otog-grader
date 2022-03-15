@@ -334,6 +334,23 @@ def getTypeJudge(problemId):
         return "check.cpp"
     return "standard"
 
+def getMissingSeqNumberFile(pathTo:str, extension:str, number:int):
+    """This function will check every file in <pathTo>/{i}.<extension>
+    for {i} range from 1 to <number>
+    This function will return the list of missing files
+    
+    
+    eg. isSeqNumberFile("testP", "in", 5) it will check testP/1.in, testP/2.in, testP/3.in, testP/4.in and testP/5.in 
+    It will return [] if 5 of them are exist
+    but if one of them missing like 4.in is missing, It will return [4]"""
+
+    result = []
+
+    for i in range(number):
+        if not Path(f"{pathTo}/{i + 1}.{extension}").is_file():
+            result.append(i+1)
+        
+    return result
 
 def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"

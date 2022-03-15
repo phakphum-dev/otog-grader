@@ -67,21 +67,42 @@ def startJudge(queueData, isTest: bool = False):
         )
         return
     
-    for case in range(int(submission.testcase)):
-        if not Path(f"./source/{submission.problemId}/{case + 1}.in").is_file():
-            printFail("TESTCASE", f"Testcase {case + 1}.in is missing")
+    #? Check is .in are ready to use
+    missingIn = getMissingSeqNumberFile(f"./source/{submission.problemId}","in",int(submission.testcase))
+    if missingIn:
+        printFail("TESTCASE", f"Testcase {missingIn[0]}.in is missing")
+        updateResult(
+            submission.id,
+            "Input missing",
+            0,
+            0,
+            0,
+            "Admins have not yet upload the testcases. Go ahead and flame them.",
+        )
+        return
+    
+    missingSol = getMissingSeqNumberFile(f"./source/{submission.problemId}","sol",int(submission.testcase))
+    #? to check .sol It depend on type of judge
+    judgeType = getTypeJudge(submission.problemId)
+    if judgeType == "standard":
+        #? if it standard, It must have all .sol file
+        if missingSol:
+            printFail("TESTCASE", f"Testcase {missingSol[0]}.sol is missing")
             updateResult(
                 submission.id,
-                "Input missing",
+                "Solution missing",
                 0,
                 0,
                 0,
                 "Admins have not yet upload the testcases. Go ahead and flame them.",
             )
             return
-        
-        if not Path(f"./source/{submission.problemId}/{case + 1}.sol").is_file():
-            printWarning("TESTCASE", f"Testcase {case + 1}.sol is missing")
+    else:
+        #? otherwise, just warn.
+        for e in missingSol:
+            printWarning("TESTCASE", f"Testcase {e}.sol is missing")
+
+
 
     printHeader("GRADER", "Compiling process...")
 
