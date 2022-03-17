@@ -6,12 +6,13 @@ import constants as const
 import config
 
 import cmdManager as langCMD
+from constants import Enums
 
 
 def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
-    printHeader("GRADER", f"use {judgeType} Judge...")
+    printHeader("GRADER", f"use {judgeType.value} Judge...")
     printHeader("GRADER", f"Runtime process:")
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
@@ -142,7 +143,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
     for testInd in seqCase:
         if "!" in result[testInd]:
-            return "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType} was explode in test case {result.find('!') + 1}",
+            return "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType.value} was explode in test case {result.find('!') + 1}",
 
     finalResult = "".join(result)
     finalScore = score * submission.mxScore / mxScore
@@ -155,7 +156,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("Codeforces", f"Evaluate with Codeforces standard")
-    printHeader("GRADER", f"use {judgeType} Judge...")
+    printHeader("GRADER", f"use {judgeType.value} Judge...")
     printHeader("GRADER", f"Runtime process:")
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
