@@ -216,6 +216,11 @@ def errMsgHandle(errMes: str) -> str:
     if len(errLines) > MAX_ERROR_LINE:
         errMes = "\n".join(
             errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
+    
+    pathCensor = ["./env", "/var/local/lib/isolate/0/box"]
+    for e in pathCensor:
+        errMes = errMes.replace(e, "...")
+
     return errMes
 
 
