@@ -66,6 +66,43 @@ def startJudge(queueData, isTest: bool = False):
             "Admins have not yet upload the testcases. Go ahead and flame them.",
         )
         return
+    
+    #? Check is .in are ready to use
+    missingIn = getMissingSeqNumberFile(f"./source/{submission.problemId}","in",int(submission.testcase))
+    if missingIn:
+        printFail("TESTCASE", f"Testcase {missingIn[0]}.in is missing")
+        updateResult(
+            submission.id,
+            "Input missing",
+            0,
+            0,
+            0,
+            "Admins have not yet upload the testcases. Go ahead and flame them.",
+        )
+        return
+    
+    missingSol = getMissingSeqNumberFile(f"./source/{submission.problemId}","sol",int(submission.testcase))
+    #? to check .sol It depend on type of judge
+    judgeType = getTypeJudge(submission.problemId)
+    if judgeType == "standard":
+        #? if it standard, It must have all .sol file
+        if missingSol:
+            printFail("TESTCASE", f"Testcase {missingSol[0]}.sol is missing")
+            updateResult(
+                submission.id,
+                "Solution missing",
+                0,
+                0,
+                0,
+                "Admins have not yet upload the testcases. Go ahead and flame them.",
+            )
+            return
+    else:
+        #? otherwise, just warn.
+        for e in missingSol:
+            printWarning("TESTCASE", f"Testcase {e}.sol is missing")
+
+
 
     printHeader("GRADER", "Compiling process...")
 
@@ -110,8 +147,11 @@ def startJudge(queueData, isTest: bool = False):
         except:
             errmsg = "Someting went wrong."
 
-        if errmsg != None:
+        if errmsg:
             errmsg = errMsgHandle(errmsg)
+        else:
+            errmsg = "Someting went wrong.\nContact admin immediately :( !!"
+            
 
         updateResult(submission.id, err, 0, 0, 0, errmsg)
         return
