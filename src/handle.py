@@ -219,7 +219,7 @@ def errMsgHandle(errMes: str) -> str:
     
     pathCensor = ["./env", "/var/local/lib/isolate/0/box"]
     for e in pathCensor:
-        errMes = errMes.replace(e, "...")
+        errMes = errMes.replace(e, "")
 
     return errMes
 
