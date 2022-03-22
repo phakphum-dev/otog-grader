@@ -11,7 +11,7 @@ from random import randint
 from message import *
 import config
 import cmdManager as langCMD
-from constants import Enums
+from constants.Enums import *
 
 MAX_ERROR_LINE = int(config.get("grader", "max_error_line"))
 
@@ -330,15 +330,15 @@ def stdcmpfunc(fname1, fname2):
 def getTypeJudge(problemId):
     PROBLEM_PATH = f"./source/{problemId}"
     if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
-        return Enums.JudgeType.ogogi
+        return JudgeType.ogogi
     if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
         thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        return Enums.JudgeType.cppCheck
-    return Enums.JudgeType.standard
+        return JudgeType.cppCheck
+    return JudgeType.standard
 
 def getMissingSeqNumberFile(pathTo:str, extension:str, number:int):
     """This function will check every file in <pathTo>/{i}.<extension>
@@ -362,7 +362,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"
 
     # OGOGI Judge
-    if judgeType == Enums.JudgeType.ogogi:
+    if judgeType == JudgeType.ogogi:
         thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {userPath} {PROBLEM_PATH}/ {testCase}"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -376,7 +376,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
         if t != 0 or len(result.strip()) != 1:
             return "!"  # Judge Error... Bruh
         return result.strip()
-    elif judgeType == Enums.JudgeType.cppCheck:
+    elif judgeType == JudgeType.cppCheck:
         if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
             return "!"
 

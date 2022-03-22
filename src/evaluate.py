@@ -6,7 +6,7 @@ import constants as const
 import config
 
 import cmdManager as langCMD
-from constants import Enums
+from constants.Enums import *
 
 
 def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
