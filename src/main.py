@@ -9,6 +9,7 @@ from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnecti
 from handle import *
 from DTO.submission import submissionDTO
 import evaluate
+from constants.Enums import *
 
 
 def startJudge(queueData, isTest: bool = False):
@@ -84,7 +85,7 @@ def startJudge(queueData, isTest: bool = False):
     missingSol = getMissingSeqNumberFile(f"./source/{submission.problemId}","sol",int(submission.testcase))
     #? to check .sol It depend on type of judge
     judgeType = getTypeJudge(submission.problemId)
-    if judgeType == "standard":
+    if judgeType == JudgeType.standard:
         #? if it standard, It must have all .sol file
         if missingSol:
             printFail("TESTCASE", f"Testcase {missingSol[0]}.sol is missing")
