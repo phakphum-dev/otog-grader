@@ -7,16 +7,21 @@ from handle import *
 from DTO.submission import submissionDTO
 import subtask
 from message import *
-import main
+import judge
 
 
-def updateResult(subName, result, score, timeLen, comment):
+
+def updateResult(subName, result, score, timeLen, memUse, comment):
     print(f"\n\n-------------End of submit {subName}-------------")
     print(f"result : {result}")
     print(f"score : {score}")
     print(f"timeLen : {timeLen}")
+    print(f"memUse  : {memUse}")
     print(f"comment : {comment}")
     print(f"-----------------------------------------------")
+
+def runCase(id, case):
+    pass
 
 fileExtension = {
     "c" : ["c","i"],
@@ -31,9 +36,15 @@ def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256,
     testEnv()
     nUser = crt * 100 + 69
     # If there is new payload
-    submission = (nUser, nUser, proId, 0, 0, 0, 0, 0, 0,
-                      srcCode, lang, 0, 0, 0, 0, 0, 100, timeLim * 1000, mem, 0, 0, testcase)
-    main.startJudge(submission, True)
+    submission = submissionDTO(
+        nUser,
+        nUser,
+        proId,
+        69,
+        srcCode, lang, 100,
+        timeLim * 1000, mem, testcase, "classic"
+    )
+    judge.startJudge(submission, updateResult, runCase)
 
 
 if __name__ == "__main__":

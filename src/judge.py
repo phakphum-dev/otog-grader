@@ -1,31 +1,37 @@
 from pathlib import Path
-import time
 from datetime import datetime
 import tabulate
 
-import subtask
 from message import *
-from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
 from handle import *
 from DTO.submission import submissionDTO
 import evaluate
 from constants.Enums import *
 
 
-def startJudge(queueData, isTest: bool = False):
-    global updateResult
-    if isTest:
-        def updateResult(subName, result, score, timeLen, memUse, comment):
-            print(f"\n\n-------------End of submit {subName}-------------")
-            print(f"result : {result}")
-            print(f"score : {score}")
-            print(f"timeLen : {timeLen}")
-            print(f"memUse : {memUse}")
-            print(f"comment : {comment}")
-            print(f"-----------------------------------------------")
+def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase):
+    """
+    Start judge is a BIG function that will judge and evaluate participant code
+    Attributes
+    ----------
+    queueData : submissionDTO
+    onSubmitResult : function
+        is the function that will call when finishing judge
+        you have to define 6 parameters
+            [resultId]
+            [result] (eg. PPPPPP)
+            [score]
+            [sumTime]
+            [memUse]
+            [errmsg] (when compile err)
+    onUpdateRuningInCase : function
+        is the function that will call everytime when runing each case
+        you have to define 2 parameters
+            [resultId]
+            [current number of testcase : int]
+    """
 
     # If there is new payload
-    submission = submissionDTO(queueData)
     printOKCyan("GRADER", "Receive New Submission.")
     print(f"[ {datetime.now().strftime('%d/%m/%Y - %H:%M:%S')} ]")
     print(
@@ -45,7 +51,7 @@ def startJudge(queueData, isTest: bool = False):
     # If does not specify number of testcase
     if not submission.testcase:
         printFail("GRADER", "Number of testcase does not specified.")
-        updateResult(
+        onSubmitResult(
             submission.id,
             "No nCase",
             0,
@@ -58,7 +64,7 @@ def startJudge(queueData, isTest: bool = False):
     # Check if testcases actually exist
     if not Path(f"./source/{submission.problemId}").is_dir():
         printFail("GRADER", "No testcase. Aborted.")
-        updateResult(
+        onSubmitResult(
             submission.id,
             "No Testcase",
             0,
@@ -72,7 +78,7 @@ def startJudge(queueData, isTest: bool = False):
     missingIn = getMissingSeqNumberFile(f"./source/{submission.problemId}","in",int(submission.testcase))
     if missingIn:
         printFail("TESTCASE", f"Testcase {missingIn[0]}.in is missing")
-        updateResult(
+        onSubmitResult(
             submission.id,
             "Input missing",
             0,
@@ -89,7 +95,7 @@ def startJudge(queueData, isTest: bool = False):
         #? if it standard, It must have all .sol file
         if missingSol:
             printFail("TESTCASE", f"Testcase {missingSol[0]}.sol is missing")
-            updateResult(
+            onSubmitResult(
                 submission.id,
                 "Solution missing",
                 0,
@@ -111,7 +117,7 @@ def startJudge(queueData, isTest: bool = False):
     #     sourceCode = submission.sourceCode.decode("UTF-8")
     # except:
     #     printFail("GRADER", "Cannot decode received source string. Aborted.")
-    #     updateResult(
+    #     onSubmitResult(
     #         submission.id,
     #         "Undecodable",
     #         0,
@@ -154,16 +160,16 @@ def startJudge(queueData, isTest: bool = False):
             errmsg = "Someting went wrong.\nContact admin immediately :( !!"
             
 
-        updateResult(submission.id, err, 0, 0, 0, errmsg)
+        onSubmitResult(submission.id, err, 0, 0, 0, errmsg)
         return
     elif err == "Compilation TLE":
         printWarning("GRADER", "Compile Time Limit Exceeded.")
-        updateResult(submission.id, "Compilation Error", 0, 0, 0, "Compilation Time Limit Exceeded")
+        onSubmitResult(submission.id, "Compilation Error", 0, 0, 0, "Compilation Time Limit Exceeded")
         return
 
     result, finalScore, sumTime, resMem, comment = evaluate.start(
-        submission, srcCodePath, isTest, isolateEnvPath)
-    updateResult(
+        submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
+    onSubmitResult(
         submission.id,
         result,
         finalScore,
@@ -175,32 +181,3 @@ def startJudge(queueData, isTest: bool = False):
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
         print(f"\t-> Mem  used: {int(resMem or -1)} kb??")
-
-
-def main():
-
-    testEnv()
-
-    testDBConnection()
-    printBlod("GRADER", "Grader started.")
-
-    while True:
-        DBConnect()
-        queue = getQueue()
-        if not queue:
-            DBDisconnect()
-            time.sleep(1)
-            continue
-        startJudge(queue)
-        printOKCyan(
-            "GRADER", "Grading session completed.\n\t-> Waiting for new submission.")
-        DBDisconnect()
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt as e:
-        print(" Keyboard Interrupt Detected.\n")
-    except Exception as e:
-        print("Exception : "+str(e)+"\n")
