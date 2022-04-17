@@ -29,8 +29,8 @@ RUN apk add --update --no-cache git make libcap-dev asciidoc
 #RUN chown otog:otog /usr/src/app
 
 COPY --from=build /usr/src/app/venv ./venv
-COPY . .
 
+COPY . .
 RUN sh ./installIsolate.sh
 
 #USER otog

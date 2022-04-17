@@ -1,9 +1,9 @@
-import config
+from constants.osDotEnv import *
 
 dbConfig = {
-    "host": config.get("postgres", "host"),
-    "port": config.get("postgres", "port"),
-    "user": config.get("postgres", "user"),
-    "password": config.get("postgres", "passwd"),
-    "dbname": config.get("postgres", "database"),
+    "host": osEnv.POSTGRES_HOST,
+    "port": osEnv.POSTGRES_PORT,
+    "user": osEnv.POSTGRES_USER,
+    "password": osEnv.POSTGRES_PASSWD,
+    "dbname": osEnv.POSTGRES_DATABASE,
 }

@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+  grader:
+    #image: ghcr.io/phakphum-dev/otog-grader:latest
+    build: .
+    image: otog-grader:latest
+    container_name: otog-grader
+    privileged: true
+    volumes:
+      - ./source:/usr/src/app/source:rw
+      - ./testSpace:/usr/src/app/testSpace:rw
+    networks:
+      - otog-network
+    env_file:
+      - .env
+    command: python -u src/Test.py
+
+networks:
+  otog-network:
+    name: otog-network
+

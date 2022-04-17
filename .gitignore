@@ -110,6 +110,7 @@ celerybeat.pid
 
 # Environments
 # .env
+.env
 .env/
 .venv/
 env/
@@ -158,12 +159,13 @@ Thumbs.db #thumbnail cache on Windows
 
 # End of https://www.toptal.com/developers/gitignore/api/python,vscode
 
-#DLC From Test Bruh
 .vscode
+#DLC From Test Bruh
+testSpace/codes
+testSpace/testCodeDB.ini
+testSpace/Logs
 
 config.ini
-testCodes
-testCodeDB.ini
 source
 command.yaml
 dummy.py

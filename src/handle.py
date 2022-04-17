@@ -9,12 +9,17 @@ from pathlib import Path
 from random import randint
 
 from message import *
-import config
+from constants.osDotEnv import *
 import cmdManager as langCMD
 from constants.Enums import *
 
-MAX_ERROR_LINE = int(config.get("grader", "max_error_line"))
+MAX_ERROR_LINE = int(osEnv.GRADER_MAX_ERROR_LINE)
 
+
+def strToBool(value : str) -> bool:
+    if value.lower() == "false" or value.lower() == "f" :
+        return False
+    return True
 
 def testEnv():
     if not path.exists("env"):

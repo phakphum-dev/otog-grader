@@ -7,6 +7,7 @@ from handle import *
 from DTO.submission import submissionDTO
 import evaluate
 from constants.Enums import *
+from constants.osDotEnv import *
 
 
 def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase):
@@ -129,7 +130,7 @@ def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase)
 
     #? check and init isolate
     isolateEnvPath = None #! None means didn't use isolate
-    if config.getAsBool("grader", "use_isolate"):
+    if strToBool(osEnv.GRADER_USE_ISOLATE):
         isolateEnvPath = initIsolate()
     
 
