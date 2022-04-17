@@ -4,7 +4,7 @@ import subtask
 from postgresql.dbQuery import  updateRunningInCase
 import constants as const
 from constants.osDotEnv import *
-import config
+from constants.verdictColor import *
 
 import cmdManager as langCMD
 from constants.Enums import *
@@ -115,7 +115,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRu
             else:
                 verdict = "X"
             result[testInd] += verdict
-            print(verdict, end="", flush=True)
+            print(verdictsColor[verdict], end="", flush=True)
             onUpdateRuningInCase(submission.id, x)
 
         # calculate score here
