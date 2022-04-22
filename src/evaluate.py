@@ -1,15 +1,16 @@
 from DTO.submission import submissionDTO
 from handle import *
 import subtask
-from postgresql.dbQuery import updateResult, updateRunningInCase
+from postgresql.dbQuery import  updateRunningInCase
 import constants as const
-import config
+from constants.osDotEnv import *
+from constants.verdictColor import *
 
 import cmdManager as langCMD
 from constants.Enums import *
 
 
-def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
+def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("GRADER", f"use {judgeType.value} Judge...")
@@ -55,7 +56,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
         isSkiped = False
 
         # Check if it prerequisite when it it contest
-        if (submission.contestId or isTest) and "require" in testOption[testInd]:
+        if (submission.contestId) and "require" in testOption[testInd]:
             allReq = []
             if type(testOption[testInd]["require"]) == type(69) and testOption[testInd]["require"] <= len(testList):
                 allReq.append(testOption[testInd]["require"])
@@ -80,7 +81,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
             testTimeLimit = submission.timeLimit * \
                 langCMD.get(submission.language, "timeFactor") * \
-                float(config.get("grader", "global_time_factor"))
+                float(osEnv.GRADER_TIME_FACTOR)
 
             t, elapse, memUse = execute(
                 submission.userId,  # User ID
@@ -114,9 +115,8 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
             else:
                 verdict = "X"
             result[testInd] += verdict
-            print(verdict, end="", flush=True)
-            if not isTest:
-                updateRunningInCase(submission.id, x)
+            print(verdictsColor[verdict], end="", flush=True)
+            onUpdateRuningInCase(submission.id, x)
 
         # calculate score here
         allCorrect = len(testList[testInd-1])
@@ -152,7 +152,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
     return finalResult, finalScore, sumTime, mxMem, None
 
 
-def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
+def cfEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("Codeforces", f"Evaluate with Codeforces standard")
@@ -184,7 +184,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
 
         testTimeLimit = submission.timeLimit * \
             langCMD(submission.language, "timeFactor") * \
-                float(config.get("grader", "global_time_factor"))
+                float(osEnv.GRADER_TIME_FACTOR)
 
         t, elapse, memUse = execute(
             submission.userId,  # User ID
@@ -221,17 +221,16 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isTest, isoPath):
             return result, 0, resultTime, resultMem, None
         else:
             print('P', end="", flush=True)
-            if not isTest:
-                updateRunningInCase(submission.id, x)
+            onUpdateRuningInCase(submission.id, x)
 
     resultTime //= langCMD(submission.language, "timeFactor")
 
     return result, submission.mxScore, resultTime, resultMem, None
 
 
-def start(submission: submissionDTO, srcPath: str, isTest, isoPath):
+def start(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
 
     if submission.mode == "codeforces":
-        return cfEvaluate(submission, srcPath, isTest, isoPath)
+        return cfEvaluate(submission, srcPath, isoPath, onUpdateRuningInCase)
     else:
-        return classicEvaluate(submission, srcPath, isTest, isoPath)
+        return classicEvaluate(submission, srcPath, isoPath, onUpdateRuningInCase)
