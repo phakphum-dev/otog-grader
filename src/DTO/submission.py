@@ -2,18 +2,15 @@ from dataclasses import dataclass
 
 
 @dataclass
-class submissionDTO:
-    def __init__(self, submissionId, userId, problemId,
-    contestId, sourceCode, language, maxScore, timeLimit,
-    memoryLimit, testcase, mode):
-        self.id = submissionId
-        self.userId = userId
-        self.problemId = problemId
-        self.contestId = contestId
-        self.sourceCode = sourceCode
-        self.language = language
-        self.mxScore = maxScore
-        self.timeLimit = timeLimit
-        self.memoryLimit = memoryLimit
-        self.testcase = testcase
-        self.mode = mode
+class SubmissionDTO:
+    id: int
+    userId: int
+    problemId: int
+    contestId: int
+    sourceCode: str
+    language: str
+    maxScore: int
+    timeLimit: int
+    memoryLimit: int
+    testcase: str
+    mode: str

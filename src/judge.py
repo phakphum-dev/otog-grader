@@ -1,31 +1,31 @@
 from pathlib import Path
 from datetime import datetime
 import tabulate
+from DTO.result import ResultDTO
 
 from message import *
 from handle import *
-from DTO.submission import submissionDTO
+from DTO.submission import SubmissionDTO
 import evaluate
 from constants.Enums import *
 from constants.osDotEnv import *
 
+from typing import Callable
 
-def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase):
+
+def startJudge(submission: SubmissionDTO,
+               onSubmitResult: Callable[[ResultDTO], None],
+               onUpdateRuningInCase: Callable[[int, int], None]):
     """
     Start judge is a BIG function that will judge and evaluate participant code
     Attributes
     ----------
     queueData : submissionDTO
-    onSubmitResult : function
+    onSubmitResult : function (ResultDTO) -> None
         is the function that will call when finishing judge
-        you have to define 6 parameters
-            [resultId]
-            [result] (eg. PPPPPP)
-            [score]
-            [sumTime]
-            [memUse]
-            [errmsg] (when compile err)
-    onUpdateRuningInCase : function
+        you have to define 1 parameter
+            [result : ResultDTO]
+    onUpdateRuningInCase : function (int, int) -> None
         is the function that will call everytime when runing each case
         you have to define 2 parameters
             [resultId]
@@ -52,65 +52,69 @@ def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase)
     # If does not specify number of testcase
     if not submission.testcase:
         printFail("GRADER", "Number of testcase does not specified.")
-        onSubmitResult(
-            submission.id,
-            "No nCase",
-            0,
-            0,
-            0,
-            "Number of testcase does not specified. Flame admins, kiddos. :(",
+        submitResult = ResultDTO(
+            id=submission.id,
+            result="No nCase",
+            score=0,
+            sumTime=0,
+            memUse=0,
+            errmsg="Number of testcase does not specified. Flame admins, kiddos. :("
         )
+        onSubmitResult(submitResult)
         return
 
     # Check if testcases actually exist
     if not Path(f"./source/{submission.problemId}").is_dir():
         printFail("GRADER", "No testcase. Aborted.")
-        onSubmitResult(
-            submission.id,
-            "No Testcase",
-            0,
-            0,
-            0,
-            "Admins have not yet upload the testcases. Go ahead and flame them.",
+        submitResult = ResultDTO(
+            id=submission.id,
+            result="No Testcase",
+            score=0,
+            sumTime=0,
+            memUse=0,
+            errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
         )
+        onSubmitResult(submitResult)
         return
-    
-    #? Check is .in are ready to use
-    missingIn = getMissingSeqNumberFile(f"./source/{submission.problemId}","in",int(submission.testcase))
+
+    # ? Check is .in are ready to use
+    missingIn = getMissingSeqNumberFile(
+        f"./source/{submission.problemId}", "in", int(submission.testcase))
     if missingIn:
         printFail("TESTCASE", f"Testcase {missingIn[0]}.in is missing")
-        onSubmitResult(
-            submission.id,
-            "Input missing",
-            0,
-            0,
-            0,
-            "Admins have not yet upload the testcases. Go ahead and flame them.",
+        submitResult = ResultDTO(
+            id=submission.id,
+            result="Input missing",
+            score=0,
+            sumTime=0,
+            memUse=0,
+            errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
         )
+        onSubmitResult(submitResult)
         return
-    
-    missingSol = getMissingSeqNumberFile(f"./source/{submission.problemId}","sol",int(submission.testcase))
-    #? to check .sol It depend on type of judge
+
+    missingSol = getMissingSeqNumberFile(
+        f"./source/{submission.problemId}", "sol", int(submission.testcase))
+    # ? to check .sol It depend on type of judge
     judgeType = getTypeJudge(submission.problemId)
     if judgeType == JudgeType.standard:
-        #? if it standard, It must have all .sol file
+        # ? if it standard, It must have all .sol file
         if missingSol:
             printFail("TESTCASE", f"Testcase {missingSol[0]}.sol is missing")
-            onSubmitResult(
-                submission.id,
-                "Solution missing",
-                0,
-                0,
-                0,
-                "Admins have not yet upload the testcases. Go ahead and flame them.",
+            submitResult = ResultDTO(
+                id=submission.id,
+                result="Solution missing",
+                score=0,
+                sumTime=0,
+                memUse=0,
+                errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
             )
+            onSubmitResult(submitResult)
             return
     else:
-        #? otherwise, just warn.
+        # ? otherwise, just warn.
         for e in missingSol:
             printWarning("TESTCASE", f"Testcase {e}.sol is missing")
-
-
 
     printHeader("GRADER", "Compiling process...")
 
@@ -128,16 +132,16 @@ def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase)
     #     )
     #     return
 
-    #? check and init isolate
-    isolateEnvPath = None #! None means didn't use isolate
+    # ? check and init isolate
+    isolateEnvPath = None  # ! None means didn't use isolate
     if strToBool(osEnv.GRADER_USE_ISOLATE):
         isolateEnvPath = initIsolate()
-    
 
     prepareEnv(submission.problemId, isolateEnvPath)
 
     # Write source string to file
-    srcCodePath = createSourceCode(submission.sourceCode, submission.language, isolateEnvPath)
+    srcCodePath = createSourceCode(
+        submission.sourceCode, submission.language, isolateEnvPath)
 
     # Compile
     err = create(submission.userId, submission.language,
@@ -159,25 +163,42 @@ def startJudge(submission : submissionDTO, onSubmitResult, onUpdateRuningInCase)
             errmsg = errMsgHandle(errmsg)
         else:
             errmsg = "Someting went wrong.\nContact admin immediately :( !!"
-            
 
-        onSubmitResult(submission.id, err, 0, 0, 0, errmsg)
+        submitResult = ResultDTO(
+            id=submission.id,
+            result=err,
+            score=0,
+            sumTime=0,
+            memUse=0,
+            errmsg=errmsg
+        )
+        onSubmitResult(submitResult)
         return
     elif err == "Compilation TLE":
         printWarning("GRADER", "Compile Time Limit Exceeded.")
-        onSubmitResult(submission.id, "Compilation Error", 0, 0, 0, "Compilation Time Limit Exceeded")
+        submitResult = ResultDTO(
+            id=submission.id,
+            result="Compilation Error",
+            score=0,
+            sumTime=0,
+            memUse=0,
+            errmsg="Compilation Time Limit Exceeded"
+        )
+        onSubmitResult(submitResult)
         return
 
     result, finalScore, sumTime, resMem, comment = evaluate.start(
         submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
-    onSubmitResult(
-        submission.id,
-        result,
-        finalScore,
-        sumTime,
-        resMem,
-        comment,
+
+    submitResult = ResultDTO(
+        id=submission.id,
+        result=result,
+        score=finalScore,
+        sumTime=sumTime,
+        memUse=resMem,
+        errmsg=comment
     )
+    onSubmitResult(submitResult)
 
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")

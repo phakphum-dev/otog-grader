@@ -1,4 +1,5 @@
 import time
+from DTO.result import ResultDTO
 from constants.colors import colors
 from .dbInit import DB
 from datetime import datetime
@@ -64,14 +65,15 @@ def updateRunningInCase(resultId, case):
     db.update()
 
 
-def updateResult(resultId, result, score, sumTime, memUse, errmsg):
-    #TODO : Imprement memUse in DB
+def updateResult(result: ResultDTO):
+    # TODO : Imprement memUse in DB
+    currentDate = datetime.now()
     sql = """UPDATE submission SET result = %s, score = %s, "timeUsed" = %s, 
             status = %s, errmsg = %s, "updateDate" = %s WHERE id = %s"""
     status = "accept" if all(
-        c in "P[]()" for c in result) or result == "Accepted" else "reject"
-    val = (result, score, int(sumTime), status,
-           errmsg, datetime.now(), str(resultId))
+        c in "P[]()" for c in result.result) or result.result == "Accepted" else "reject"
+    val = (result.result, result.score, int(result.sumTime), status,
+           result.errmsg, currentDate, str(result.id))
     cur = db.query(sql, val)
     cur.close()
     db.update()
