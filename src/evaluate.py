@@ -1,7 +1,7 @@
-from DTO.submission import submissionDTO
+from DTO.submission import SubmissionDTO
 from handle import *
 import subtask
-from postgresql.dbQuery import  updateRunningInCase
+from postgresql.dbQuery import updateRunningInCase
 import constants as const
 from constants.osDotEnv import *
 from constants.verdictColor import *
@@ -10,7 +10,7 @@ import cmdManager as langCMD
 from constants.Enums import *
 
 
-def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
+def classicEvaluate(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("GRADER", f"use {judgeType.value} Judge...")
@@ -31,7 +31,6 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRu
     if mxCase <= 0:
         printFail("GRADER", "Invalid number of testcase.")
         return "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..",
-        
 
     print("\t-> Result: ", end="", flush=True)
     testList, testOption = subtaskData
@@ -44,7 +43,7 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRu
     mxMem = None
 
     for testInd in seqCase:
-        
+
         if "group" in testOption[testInd] and testOption[testInd]["group"]:
             result[testInd] += "["
             print("[", end="", flush=True)
@@ -146,13 +145,13 @@ def classicEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRu
             return "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{judgeType.value} was explode in test case {result.find('!') + 1}",
 
     finalResult = "".join(result)
-    finalScore = score * submission.mxScore / mxScore
+    finalScore = score * submission.maxScore / mxScore
     sumTime //= langCMD.get(submission.language, "timeFactor")
 
     return finalResult, finalScore, sumTime, mxMem, None
 
 
-def cfEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
+def cfEvaluate(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
     judgeType = getTypeJudge(submission.problemId)
 
     printHeader("Codeforces", f"Evaluate with Codeforces standard")
@@ -161,7 +160,8 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningI
 
     if os.path.exists(f"./source/{submission.problemId}/subtask.tc"):
         subContent = fileRead(f"./source/{submission.problemId}/subtask.tc")
-        printHeader("SUBTASK", f"Found custom subtask (But don't use in codeforce)")
+        printHeader(
+            "SUBTASK", f"Found custom subtask (But don't use in codeforce)")
     else:
         subContent = submission.testcase
     mxCase, subtaskData = subtask.compile(subContent)
@@ -184,7 +184,7 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningI
 
         testTimeLimit = submission.timeLimit * \
             langCMD(submission.language, "timeFactor") * \
-                float(osEnv.GRADER_TIME_FACTOR)
+            float(osEnv.GRADER_TIME_FACTOR)
 
         t, elapse, memUse = execute(
             submission.userId,  # User ID
@@ -225,10 +225,10 @@ def cfEvaluate(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningI
 
     resultTime //= langCMD(submission.language, "timeFactor")
 
-    return result, submission.mxScore, resultTime, resultMem, None
+    return result, submission.maxScore, resultTime, resultMem, None
 
 
-def start(submission: submissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
+def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase):
 
     if submission.mode == "codeforces":
         return cfEvaluate(submission, srcPath, isoPath, onUpdateRuningInCase)

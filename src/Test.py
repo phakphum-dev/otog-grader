@@ -1,7 +1,7 @@
 import configparser
 import time
 
-from DTO.submission import submissionDTO
+from DTO.submission import SubmissionDTO
 from message import *
 from handle import *
 import judge
@@ -50,7 +50,7 @@ def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256,
     testEnv()
     nUser = crt * 100 + 69
     # If there is new payload
-    submission = submissionDTO(
+    submission = SubmissionDTO(
         nUser,
         nUser,
         proId,

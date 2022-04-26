@@ -3,7 +3,8 @@ from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnecti
 from handle import testEnv
 from message import *
 import time
-from DTO.submission import submissionDTO
+from DTO.submission import SubmissionDTO
+
 
 def main():
 
@@ -19,18 +20,18 @@ def main():
             DBDisconnect()
             time.sleep(1)
             continue
-        subDTO = submissionDTO(
-            submissionId= queue[0],
-            userId      = queue[1],
-            problemId   = queue[2],
-            contestId   = queue[8],
-            sourceCode  = queue[9],
-            language    = queue[10],
-            maxScore    = queue[16],
-            timeLimit   = queue[17],
-            memoryLimit = queue[18],
-            testcase    = queue[21],
-            mode        = "classic"
+        subDTO = SubmissionDTO(
+            id=queue[0],
+            userId=queue[1],
+            problemId=queue[2],
+            contestId=queue[8],
+            sourceCode=queue[9],
+            language=queue[10],
+            maxScore=queue[16],
+            timeLimit=queue[17],
+            memoryLimit=queue[18],
+            testcase=queue[21],
+            mode="classic"
         )
         judge.startJudge(subDTO, updateResult, updateRunningInCase)
         printOKCyan(
