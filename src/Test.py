@@ -2,33 +2,34 @@ import configparser
 import time
 
 from DTO.submission import SubmissionDTO
+from DTO.result import ResultDTO
 from message import *
 from handle import *
 import judge
 
 reportTextLog = ""
 
-def updateResult(subName, result, score, timeLen, memUse, comment):
+def updateResult(result: ResultDTO):
     global reportTextLog
-    print(f"\n\n-------------End of submit {subName}-------------")
-    print(f"result : {result}")
-    print(f"score : {score}")
-    print(f"timeLen : {timeLen}")
-    print(f"memUse  : {memUse}")
-    print(f"comment : {comment}")
+    print(f"\n\n-------------End of submit {result.id}-------------")
+    print(f"result : {result.result}")
+    print(f"score : {result.score}")
+    print(f"timeLen : {result.sumTime}")
+    print(f"memUse  : {result.memUse}")
+    print(f"comment : {result.errmsg}")
     print(f"-----------------------------------------------")
-    reportTextLog += f"""**Result** : `{result}`
+    reportTextLog += f"""**Result** : `{result.result}`
 
-**Score** : `{score}`
+**Score** : `{result.score}`
 
-**TimeLen** : `{timeLen}s`
+**TimeLen** : `{result.sumTime}s`
 
-**MemUse** : `{memUse}kb`
+**MemUse** : `{result.memUse}kb`
 
 **comment**
 
 ```
-{comment}
+{result.errmsg}
 ```
 
 
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     thisTime = time.localtime(time.time())
     logFileName = f"{thisTime.tm_year}{thisTime.tm_mon:02d}{thisTime.tm_mday:02d}-{thisTime.tm_hour:02d}{thisTime.tm_min:02d}{thisTime.tm_sec:02d}.md"
     thisTimeInStr = f"{thisTime.tm_mday} {('?','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')[thisTime.tm_mon]} {thisTime.tm_year} {thisTime.tm_hour:02d}\:{thisTime.tm_min:02d}\:{thisTime.tm_sec:02d}"
-    with open(f"./testSpace/logs/{logFileName}", "w") as f:
+    with open(f"./testSpace/logs/{logFileName} waiting", "w") as f:
         f.write(f"# Report {thisTimeInStr}\n\n_missing_")
     reportTextLog = f"# Report {thisTimeInStr}\n\n"
 
@@ -139,9 +140,11 @@ if __name__ == "__main__":
 
             reportTextLog += f"---\n\n"
     
+    os.remove(f"./testSpace/logs/{logFileName} waiting")
     if reportTextLog == f"# Report {thisTimeInStr}\n\n":
         with open(f"./testSpace/logs/{logFileName}", "w") as f:
             f.write(reportTextLog + "_but nobody came_")
     else:
         with open(f"./testSpace/logs/{logFileName}", "w") as f:
             f.write(reportTextLog)
+
