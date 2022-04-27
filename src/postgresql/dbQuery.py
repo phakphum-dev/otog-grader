@@ -44,11 +44,22 @@ def DBConnect():
 def DBDisconnect():
     db.disconnect()
 
+def getQueueModBalace(nGrader:int, thisGrader:int):
+    #thisGrader will count from 1 to nGrader
+    db.update()
+    cur = db.query(
+        f"""SELECT * FROM submission as S
+            LEFT JOIN problem as B ON S."problemId" = B."id"
+            WHERE status = 'waiting' AND mod(S.id,{nGrader}) = {thisGrader - 1} ORDER BY S."creationDate" """
+    )
+    result = cur.fetchone()
+    cur.close()
+    return result
 
 def getQueue():
     db.update()
     cur = db.query(
-        """SELECT * FROM submission as S
+        f"""SELECT * FROM submission as S
             LEFT JOIN problem as B ON S."problemId" = B."id"
             WHERE status = 'waiting' ORDER BY S."creationDate" """
     )
