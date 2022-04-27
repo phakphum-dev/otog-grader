@@ -7,6 +7,9 @@ import yaml
 from os import path
 from pathlib import Path
 from random import randint
+from DTO.result import ResultDTO
+from DTO.submission import SubmissionDTO
+from constants.LoggingMsg import Logging
 
 from message import *
 from constants.osDotEnv import *
@@ -24,6 +27,67 @@ def strToBool(value : str) -> bool:
 def testEnv():
     if not path.exists("env"):
         os.mkdir("env")
+
+def prepareLoging(sub:SubmissionDTO):
+    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:return
+
+    
+
+    thisTime = time.localtime(time.time())
+    folderName = f"{thisTime.tm_year}{thisTime.tm_mon:02d}{thisTime.tm_mday:02d}"
+    if not path.exists("./Logging"):
+        os.mkdir("./Logging")
+    
+    if not path.exists(f"./Logging/{folderName}"):
+        os.mkdir(f"./Logging/{folderName}")
+
+    replaces = [
+        ("subId", sub.id),
+        ("userId", sub.userId), 
+        ("lang", sub.language),
+        ("proId", sub.problemId),
+        ("proSec", sub.timeLimit),
+        ("proMem", sub.memoryLimit),
+        ("code", sub.sourceCode),
+        # ("resScore"),
+        # ("resVerdict"),
+        # ("resTime"),
+        # ("resMem"),
+        # ("resErrMsg"),
+    ]
+    strContent = Logging.noResult
+    for e in replaces:
+        strContent = strContent.replace(f"<!{e[0]}!>", str(e[1]))
+
+    fileWrite(f"./Logging/{folderName}/{sub.id} waiting.md", strContent)
+
+
+def resultLoging(sub:SubmissionDTO, res:ResultDTO):
+    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:return
+
+    thisTime = time.localtime(time.time())
+    folderName = f"{thisTime.tm_year}{thisTime.tm_mon:02d}{thisTime.tm_mday:02d}"
+
+    replaces = [
+        ("subId", sub.id),
+        ("userId", sub.userId), 
+        ("lang", sub.language),
+        ("proId", sub.problemId),
+        ("proSec", sub.timeLimit),
+        ("proMem", sub.memoryLimit),
+        ("code", sub.sourceCode),
+        ("resScore", res.score),
+        ("resVerdict", res.result),
+        ("resTime", res.sumTime),
+        ("resMem", res.memUse),
+        ("resErrMsg", res.errmsg),
+    ]
+    strContent = Logging.afterResult
+    for e in replaces:
+        strContent = strContent.replace(f"<!{e[0]}!>", str(e[1]))
+
+    os.remove(f"./Logging/{folderName}/{sub.id} waiting.md")
+    fileWrite(f"./Logging/{folderName}/{sub.id}.md", strContent)
 
 def initIsolate():
 

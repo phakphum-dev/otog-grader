@@ -26,7 +26,7 @@ def updateResult(result: ResultDTO):
 
 **MemUse** : `{result.memUse}kb`
 
-**comment**
+**Comment**
 
 ```
 {result.errmsg}

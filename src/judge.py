@@ -49,6 +49,8 @@ def startJudge(submission: SubmissionDTO,
         )
     )
 
+    prepareLoging(submission)
+
     # If does not specify number of testcase
     if not submission.testcase:
         printFail("GRADER", "Number of testcase does not specified.")
@@ -61,6 +63,7 @@ def startJudge(submission: SubmissionDTO,
             errmsg="Number of testcase does not specified. Flame admins, kiddos. :("
         )
         onSubmitResult(submitResult)
+        resultLoging(submission, submitResult)
         return
 
     # Check if testcases actually exist
@@ -75,6 +78,7 @@ def startJudge(submission: SubmissionDTO,
             errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
         )
         onSubmitResult(submitResult)
+        resultLoging(submission, submitResult)
         return
 
     # ? Check is .in are ready to use
@@ -91,6 +95,7 @@ def startJudge(submission: SubmissionDTO,
             errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
         )
         onSubmitResult(submitResult)
+        resultLoging(submission, submitResult)
         return
 
     missingSol = getMissingSeqNumberFile(
@@ -110,6 +115,7 @@ def startJudge(submission: SubmissionDTO,
                 errmsg="Admins have not yet upload the testcases. Go ahead and flame them."
             )
             onSubmitResult(submitResult)
+            resultLoging(submission, submitResult)
             return
     else:
         # ? otherwise, just warn.
@@ -173,6 +179,7 @@ def startJudge(submission: SubmissionDTO,
             errmsg=errmsg
         )
         onSubmitResult(submitResult)
+        resultLoging(submission, submitResult)
         return
     elif err == "Compilation TLE":
         printWarning("GRADER", "Compile Time Limit Exceeded.")
@@ -185,6 +192,7 @@ def startJudge(submission: SubmissionDTO,
             errmsg="Compilation Time Limit Exceeded"
         )
         onSubmitResult(submitResult)
+        resultLoging(submission, submitResult)
         return
 
     result, finalScore, sumTime, resMem, comment = evaluate.start(
@@ -199,6 +207,7 @@ def startJudge(submission: SubmissionDTO,
         errmsg=comment
     )
     onSubmitResult(submitResult)
+    resultLoging(submission, submitResult)
 
     if not err:
         print(f"\n\t-> Time used: {int(sumTime)} ms.")
