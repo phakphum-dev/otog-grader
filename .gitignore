@@ -165,6 +165,8 @@ testSpace/codes
 testSpace/testCodeDB.ini
 testSpace/Logs
 
+logs/
+
 config.ini
 source
 command.yaml

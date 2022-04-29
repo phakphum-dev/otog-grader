@@ -8,15 +8,13 @@ services:
     privileged: true
     volumes:
       - ./source:/usr/src/app/source:rw
-      - ./testSpace:/usr/src/app/testSpace:rw
       - ./Logging:/usr/src/app/Logging:rw
     networks:
       - otog-network
     env_file:
       - .env
-    command: python -u src/Test.py
+    command: python -u src/mainPostgresqlModBalance.py
 
 networks:
   otog-network:
     name: otog-network
-
