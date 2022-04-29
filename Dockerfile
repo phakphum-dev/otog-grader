@@ -22,6 +22,10 @@ RUN apk add --update --no-cache python3 gcc g++
 
 RUN apk add --update --no-cache git make libcap-dev asciidoc
 
+RUN git clone https://github.com/ioi/isolate.git
+
+RUN make --directory=isolate isolate
+RUN make --directory=isolate install
 
 # RUN addgroup -S otog -g 1000 \
 #     && adduser -S -G otog -u 1000 otog
@@ -31,7 +35,6 @@ RUN apk add --update --no-cache git make libcap-dev asciidoc
 COPY --from=build /usr/src/app/venv ./venv
 
 COPY . .
-RUN sh ./installIsolate.sh
 
 #USER otog
 
