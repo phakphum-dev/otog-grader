@@ -13,7 +13,7 @@ services:
       - otog-network
     env_file:
       - .env
-    command: python -u src/mainPostgresqlModBalace.py
+    command: python -u src/mainPostgresqlModBalance.py
 
 networks:
   otog-network:
