@@ -1,5 +1,6 @@
 import os
 
+
 class osEnv:
     POSTGRES_HOST = os.environ['POSTGRES_HOST']
     POSTGRES_PORT = os.environ['POSTGRES_PORT']
@@ -15,6 +16,10 @@ class osEnv:
     GRADER_TIME_FACTOR = os.environ['GRADER_TIME_FACTOR'] or "1"
     GRADER_USE_ISOLATE = os.environ['GRADER_USE_ISOLATE'] or "True"
     GRADER_ENABLE_OFFLINE_LOGGING = os.environ['GRADER_ENABLE_OFFLINE_LOGGING'] or "False"
+
+    SYNC_HOST = os.environ['SYNC_HOST']
+    SYNC_PORT = os.environ['SYNC_PORT']
+
 
 if __name__ == "__main__":
     print(osEnv.POSTGRES_HOST)

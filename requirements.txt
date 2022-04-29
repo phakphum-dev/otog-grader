@@ -3,3 +3,4 @@ mysql-connector-python==8.0.23
 psycopg-binary==3.0.7
 psycopg==3.0.7
 pyyaml==6.0
+requests==2.27.1
