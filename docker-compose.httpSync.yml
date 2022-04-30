@@ -2,10 +2,10 @@ version: '3.9'
 services:
   grader:
     #image: ghcr.io/phakphum-dev/otog-grader:latest
-    build: .
-    image: otog-grader:latest
-    container_name: otog-grader
+    # image: otog-grader:latest
     privileged: true
+    build: .
+    container_name: otog-grader
     volumes:
       - ./source:/usr/src/app/source:rw
     networks:
