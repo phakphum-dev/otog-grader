@@ -293,95 +293,6 @@ def errMsgHandle(errMes: str) -> str:
     return errMes
 
 
-def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath):
-    
-    if isoPath != None: #? Use isolate to execute
-        
-        inputFile = f"< ../source/{problemId}/{testcase}.in"
-        cmd = "cd env; "
-        cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
-        cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
-        cmd += f"--run -- {langCMD.get(language,'execute')} "
-        cmd += f"{inputFile} ; exit"
-
-        cmd = cmd.replace("[ioRedirect]", "")
-        cmd = cmd.replace("[sourcePath]", sourcePath.replace(f"{isoPath}/", ""))
-        cmd = cmd.replace("[binPath]", "./out")
-        cmd = cmd.replace("[uBin]", "/usr/bin/")
-
-        p = subprocess.Popen(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p.communicate()
-
-        if not os.path.exists(f"env/isoResult.txt"):
-            printFail("GRADER","isoResult.txt not found")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        try:
-            with open(f"env/isoResult.txt", "r") as f:
-                isoResult = f.read()
-            isoResult = isolateMetaReader(isoResult)
-        except:
-            printFail("GRADER","can't read isoResult.txt")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        
-        if "status" in isoResult and isoResult["status"] == "XX":
-            printFail("GRADER","internal error of the sandbox")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        if "status" in isoResult and isoResult["status"] == "TO":
-            exitCode = 124
-        elif "exitsig" in isoResult:
-            exitCode = int(isoResult["exitsig"])
-        elif "exitcode" in isoResult:
-            exitCode = int(isoResult["exitcode"])
-        else:
-            exitCode = 0
-
-        timeUse = float(isoResult["time"])
-        memUse = int(isoResult["cg-mem"]) #TODO : CHECK IS IT RIGHT?
-        os.system("chmod 500 env")
-        os.system("chmod 775 env/output.txt")
-        os.system("chmod 775 env/error.txt")
-        os.system(f"cp {isoPath}/output.txt env/output.txt")
-        os.system(f"cp {isoPath}/error.txt env/error.txt")
-
-
-        return exitCode, timeUse, memUse
-    else:
-    
-        ioFile = (
-            f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
-        )
-        cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
-        cmd = cmd.replace("[ioRedirect]", ioFile)
-        cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
-
-        
-        cmd = cmd.replace("[binPath]", "./out")
-        cmd = cmd.replace("[uBin]", "")
-        
-        os.system("chmod 500 env")
-        os.system("chmod 775 env/error.txt")
-        os.system("chmod 775 env/output.txt")
-        starttime = time.time()
-        proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
-        try:
-            proc.communicate(timeout=(timeLimit / 1000))
-            t = proc.returncode
-        except subprocess.TimeoutExpired:
-            t = 124
-        endtime = time.time()
-        timediff = endtime - starttime
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-        os.system("chmod -R 750 env")
-        return t, timediff, None
-
-
 def stdcmpfunc(fname1, fname2):
     try:
         with open(fname1) as f1, open(fname2) as f2:
@@ -394,20 +305,6 @@ def stdcmpfunc(fname1, fname2):
                     return False
     except:
         return False
-
-
-def getTypeJudge(problemId):
-    PROBLEM_PATH = f"./source/{problemId}"
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
-        return JudgeType.ogogi
-    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
-        proc.communicate()
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        return JudgeType.cppCheck
-    return JudgeType.standard
 
 def getMissingSeqNumberFile(pathTo:str, extension:str, number:int):
     """This function will check every file in <pathTo>/{i}.<extension>
