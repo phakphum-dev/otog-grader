@@ -31,6 +31,9 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
     sumTime = 0
     mxMem = None
 
+    realTimeFactor = langCMD.get(submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
+    testTimeLimit = submission.timeLimit * realTimeFactor
+
     for testInd in seqCase:
 
         if "group" in testOption[testInd] and testOption[testInd]["group"]:
@@ -65,18 +68,14 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
                 result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
-        for x in testList[testInd-1]:
+        for testcaseNum in testList[testInd-1]:
 
             if isSkiped:
                 break
 
-            testTimeLimit = submission.timeLimit * \
-                langCMD.get(submission.language, "timeFactor") * \
-                float(osEnv.GRADER_TIME_FACTOR)
-
             testcaseResult = excuteAndVerdict(
                 submission.problemId,
-                x,
+                testcaseNum,
                 testTimeLimit,
                 (submission.memoryLimit) * 1024,
                 submission.language,
@@ -86,7 +85,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
             )
 
 
-            sumTime += testcaseResult.timeUse * 1000
+            sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
             if testcaseResult.memUse != -1:
                 mxMem = max(mxMem or 0, testcaseResult.memUse)
 
@@ -100,7 +99,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
             result[testInd] += verdictSymbol(testcaseResult.status)
             print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
 
-            onUpdateRuningInCase(submission.id, x)
+            onUpdateRuningInCase(submission.id, testcaseNum)
 
         # calculate score here
         allCorrect = len(testList[testInd-1])
@@ -137,7 +136,6 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
 
     finalResult = "".join(result)
     finalScore = int(score * submission.maxScore / mxScore)
-    sumTime //= langCMD.get(submission.language, "timeFactor")
 
     return ResultDTO(submission.id,
     finalResult, finalScore, sumTime, mxMem, None)

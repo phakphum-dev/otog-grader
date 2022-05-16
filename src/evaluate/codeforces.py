@@ -7,7 +7,7 @@ from handle import error
 from constants.osDotEnv import *
 import cmdManager as langCMD
 from evaluate.verdict.main import excuteAndVerdict
-from constants.verdict import  verdictsColorSymbol
+from constants.verdict import  verdictsColorSymbol, verdictCodeforces, verdictsColorCodeforces
 
 from message import *
 
@@ -24,15 +24,14 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, mxC
     resultTime = 0
     resultMem = 0
 
-    for x in range(1, mxCase+1):
+    realTimeFactor = langCMD.get(submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
+    testTimeLimit = submission.timeLimit * realTimeFactor
 
-        testTimeLimit = submission.timeLimit * \
-            langCMD.get(submission.language, "timeFactor") * \
-            float(osEnv.GRADER_TIME_FACTOR)
+    for testcaseNum in range(1, mxCase+1):
 
         testcaseResult = excuteAndVerdict(
                 submission.problemId,
-                x,
+                testcaseNum,
                 testTimeLimit,
                 (submission.memoryLimit) * 1024,
                 submission.language,
@@ -41,31 +40,18 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, mxC
                 evaData.judgeType
             )
 
-        resultTime = max(resultTime, testcaseResult.timeUse * 1000)
+        resultTime = max(resultTime, testcaseResult.timeUse * 1000 // realTimeFactor)
         resultMem = max(resultMem, testcaseResult.memUse)
         
-        if testcaseResult.status != VerdictStatus.accept:
-            if testcaseResult.status == VerdictStatus.partial:
-                result = f"Partial correct on pretest {x}"
-            elif testcaseResult.status == VerdictStatus.reject:
-                result = f"Wrong answer on pretest {x}"
-            elif testcaseResult.status == VerdictStatus.timeExceed:
-                result = f"Time limit exceeded on pretest {x}"
-            elif testcaseResult.status == VerdictStatus.runtimeErr:
-                result = f"Runtime error on pretest {x}"
-            elif testcaseResult.status == VerdictStatus.err:
-                result = f"Judge error on pretest {x}"
-            
-            print(f"\n         ", result, flush=True)
-            resultTime //= langCMD.get(submission.language, "timeFactor")
+        result = verdictCodeforces(testcaseResult.status).replace("%d", str(testcaseNum))
 
+        if testcaseResult.status != VerdictStatus.accept:
+            print(verdictsColorCodeforces(testcaseResult.status).replace("%d", str(testcaseNum)), flush=True)
             return ResultDTO(submission.id, result, 0, resultTime, resultMem, None)
 
-        print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
-        onUpdateRuningInCase(submission.id, x)
+        onUpdateRuningInCase(submission.id, testcaseNum)
 
 
     #? mean accept every testcase
-    resultTime //= langCMD.get(submission.language, "timeFactor")
-
+    print(verdictsColorCodeforces(VerdictStatus.accept), flush=True)
     return ResultDTO(submission.id, result, submission.maxScore, resultTime, resultMem, None)

@@ -36,8 +36,30 @@ def verdictSymbol(status: VerdictStatus) -> str:
     else:
         return "!"
 
+def verdictCodeforces(status: VerdictStatus) -> str:
+    if status == VerdictStatus.accept:
+        return "Accepted"
+    elif status == VerdictStatus.partial:
+        return "Partial correct on pretest %d"
+    elif status == VerdictStatus.reject:
+        return "Wrong answer on pretest %d"
+    elif status == VerdictStatus.timeExceed:
+        return "Time limit exceeded on pretest %d"
+    elif status == VerdictStatus.runtimeErr:
+        return "Runtime error on pretest %d"
+    elif status == VerdictStatus.skip:
+        return "Skipping on pretest %d" #? not use
+    else:
+        return "Judge error on pretest %d"
+
+def verdictColorFormat(status: VerdictStatus, content: str) -> str:
+    return f"{verdictColorPat(status)}{content}{verdictColorPat('RESET')}"
+
 def verdictsColorSymbol(status: VerdictStatus) -> str:
-    return verdictColorPat(status) + verdictSymbol(status) + verdictColorPat("RESET")
+    return verdictColorFormat(status, verdictSymbol(status))
+
+def verdictsColorCodeforces(status: VerdictStatus) -> str:
+    return verdictColorFormat(status, verdictCodeforces(status))
 
 
 if __name__ == "__main__":
