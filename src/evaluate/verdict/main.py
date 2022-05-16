@@ -8,10 +8,14 @@ from handle import isolateMetaReader, error
 from evaluate.verdict import standard, cppCheck, ogogi
 
 
-import subprocess, os, time, signal
+import subprocess
+import os
+import time
+import signal
 
-def excute(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, language:str, sourcePath:str, isoPath):
-    if isoPath != None: #? Use isolate to execute
+
+def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath):
+    if isoPath != None:  # ? Use isolate to execute
 
         inputFile = f"< ../source/{problemId}/{testcase}.in"
         cmd = "cd env; "
@@ -21,33 +25,34 @@ def excute(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, langua
         cmd += f"{inputFile} ; exit"
 
         cmd = cmd.replace("[ioRedirect]", "")
-        cmd = cmd.replace("[sourcePath]", sourcePath.replace(f"{isoPath}/", ""))
+        cmd = cmd.replace(
+            "[sourcePath]", sourcePath.replace(f"{isoPath}/", ""))
         cmd = cmd.replace("[binPath]", "./out")
         cmd = cmd.replace("[uBin]", "/usr/bin/")
 
-        p = subprocess.Popen(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
 
         if not os.path.exists(f"env/isoResult.txt"):
-            printFail("GRADER","isoResult.txt not found")
-            printFail("GRADER","ABORT PROCESS!!!")
+            printFail("GRADER", "isoResult.txt not found")
+            printFail("GRADER", "ABORT PROCESS!!!")
             exit(1)
-        
+
         try:
             with open(f"env/isoResult.txt", "r") as f:
                 isoResult = f.read()
             isoResult = isolateMetaReader(isoResult)
         except:
-            printFail("GRADER","can't read isoResult.txt")
-            printFail("GRADER","ABORT PROCESS!!!")
+            printFail("GRADER", "can't read isoResult.txt")
+            printFail("GRADER", "ABORT PROCESS!!!")
             exit(1)
-        
-        
+
         if "status" in isoResult and isoResult["status"] == "XX":
-            printFail("GRADER","internal error of the sandbox")
-            printFail("GRADER","ABORT PROCESS!!!")
+            printFail("GRADER", "internal error of the sandbox")
+            printFail("GRADER", "ABORT PROCESS!!!")
             exit(1)
-        
+
         if "status" in isoResult and isoResult["status"] == "TO":
             exitCode = 124
         elif "exitsig" in isoResult:
@@ -58,13 +63,12 @@ def excute(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, langua
             exitCode = 0
 
         timeUse = float(isoResult["time"])
-        memUse = int(isoResult["cg-mem"]) #TODO : CHECK IS IT RIGHT?
+        memUse = int(isoResult["cg-mem"])  # TODO : CHECK IS IT RIGHT?
         os.system("chmod 500 env")
         os.system("chmod 775 env/output.txt")
         os.system("chmod 775 env/error.txt")
         os.system(f"cp {isoPath}/output.txt env/output.txt")
         os.system(f"cp {isoPath}/error.txt env/error.txt")
-
 
         return exitCode, timeUse, memUse
     else:
@@ -76,10 +80,9 @@ def excute(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, langua
         cmd = cmd.replace("[ioRedirect]", ioFile)
         cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
 
-        
         cmd = cmd.replace("[binPath]", "./out")
         cmd = cmd.replace("[uBin]", "")
-        
+
         os.system("chmod 500 env")
         os.system("chmod 775 env/error.txt")
         os.system("chmod 775 env/output.txt")
@@ -98,30 +101,31 @@ def excute(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, langua
         return t, timediff, -1
 
 
-def checkAnswer(problemId: int, userPath: str, solPath: str, testCase:int, srcPath:str, judgeType: JudgeType):
+def checkAnswer(problemId: int, userPath: str, solPath: str, testCase: int, srcPath: str, judgeType: JudgeType):
     testCaseDto = TestcaseData(problemId, userPath, solPath, testCase, srcPath)
-    
+
     if judgeType == JudgeType.cppCheck:
         result = cppCheck.getVerdict(testCaseDto)
     elif judgeType == JudgeType.ogogi:
         result = ogogi.getVerdict(testCaseDto)
-    else:#? use standard
+    else:  # ? use standard
         result = standard.getVerdict(testCaseDto)
 
     return result
 
 
-
-def excuteAndVerdict(problemId:int, testcase:int, timeLimit:float, memoryLimit:int, language:str, sourcePath:str, isoPath, judgeType:JudgeType) -> VerdictTestcase:
-    exitCode, timeDiff, memUse = excute(problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath)
+def excuteAndVerdict(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, judgeType: JudgeType) -> VerdictTestcase:
+    exitCode, timeDiff, memUse = excute(
+        problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath)
     errSymbol = error(exitCode)
 
     if not errSymbol:
-        #? if no error
+        # ? if no error
         userOutputPath = "env/output.txt"
         probOutputPath = f"./source/{problemId}/{testcase}.sol"
 
-        verdictStatus, percentScore = checkAnswer(problemId, userOutputPath, probOutputPath, testcase, sourcePath, judgeType)
+        verdictStatus, percentScore = checkAnswer(
+            problemId, userOutputPath, probOutputPath, testcase, sourcePath, judgeType)
 
         return VerdictTestcase(verdictStatus, percentScore, timeDiff, memUse)
 
@@ -129,6 +133,3 @@ def excuteAndVerdict(problemId:int, testcase:int, timeLimit:float, memoryLimit:i
         return VerdictTestcase(VerdictStatus.timeExceed, 0.0, timeDiff, memUse)
     else:
         return VerdictTestcase(VerdictStatus.runtimeErr, 0.0, timeDiff, memUse)
-
-
-

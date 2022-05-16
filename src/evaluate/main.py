@@ -1,5 +1,7 @@
 from pathlib import Path
-import subprocess, os, signal
+import subprocess
+import os
+import signal
 
 from DTO.submission import SubmissionDTO
 from DTO.evaluate import EvaluateData
@@ -13,11 +15,13 @@ from handle import fileRead
 from message import *
 import subtask
 
+
 def evaModeFromStr(mode: str) -> EvaluateMode:
     if mode == "codeforces":
         return EvaluateMode.codeforces
-    
+
     return EvaluateMode.classic
+
 
 def getJudgeType(problemId: int) -> JudgeType:
     PROBLEM_PATH = f"./source/{problemId}"
@@ -34,14 +38,16 @@ def getJudgeType(problemId: int) -> JudgeType:
 
     return JudgeType.standard
 
+
 def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase) -> ResultDTO:
     evaMode = evaModeFromStr(submission.mode)
     judgeType = getJudgeType(submission.problemId)
     evaData = EvaluateData(submission, srcPath, evaMode, judgeType)
 
-    #? read substask first
+    # ? read substask first
     if os.path.exists(f"./source/{evaData.submission.problemId}/subtask.tc"):
-        subContent = fileRead(f"./source/{evaData.submission.problemId}/subtask.tc")
+        subContent = fileRead(
+            f"./source/{evaData.submission.problemId}/subtask.tc")
         printHeader("SUBTASK", f"Found custom subtask")
     else:
         subContent = evaData.submission.testcase

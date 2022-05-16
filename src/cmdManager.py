@@ -20,16 +20,16 @@ else:
 
 if type(commandData) == type(dict()):
     if "version" not in commandData or commandData["version"] != defCmd.version:
-        mes.printWarning("command", "mismatch version... please update your command.yaml")
+        mes.printWarning(
+            "command", "mismatch version... please update your command.yaml")
         mes.printWarning("command", "use default")
     else:
         mes.printOKCyan("command", "command.yaml founded... use command.yaml")
         useConfigFrom = "yml"
+
 
 def get(lang: str, content: str):
     if useConfigFrom == "yml":
         return commandData[lang][content]
     else:
         return defCmd.langarr[lang][content]
-
-

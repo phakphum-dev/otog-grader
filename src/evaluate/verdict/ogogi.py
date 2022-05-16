@@ -1,7 +1,9 @@
 from DTO.testcaseData import TestcaseData
 from constants.Enums import VerdictStatus
 
-import subprocess, os, signal
+import subprocess
+import os
+import signal
 
 
 def getVerdict(testCaseDto: TestcaseData):
@@ -18,7 +20,7 @@ def getVerdict(testCaseDto: TestcaseData):
     result = result.decode(encoding="utf8")
     if t != 0 or len(result.strip()) != 1:
         return (VerdictStatus.err, 0.0)
-    
+
     if result.strip() == "P":
         return (VerdictStatus.accept, 1.0)
     return (VerdictStatus.reject, 1.0)

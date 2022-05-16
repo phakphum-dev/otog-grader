@@ -14,7 +14,8 @@ from evaluate.verdict.main import excuteAndVerdict
 from message import *
 import subtask
 
-def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , subtaskData ) -> ResultDTO :
+
+def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, subtaskData) -> ResultDTO:
 
     submission = evaData.submission
 
@@ -31,7 +32,8 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
     sumTime = 0
     mxMem = None
 
-    realTimeFactor = langCMD.get(submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
+    realTimeFactor = langCMD.get(
+        submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
     testTimeLimit = submission.timeLimit * realTimeFactor
 
     for testInd in seqCase:
@@ -84,7 +86,6 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
                 evaData.judgeType
             )
 
-
             sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
             if testcaseResult.memUse != -1:
                 mxMem = max(mxMem or 0, testcaseResult.memUse)
@@ -132,10 +133,10 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str , su
     for testInd in seqCase:
         if "!" in result[testInd]:
             return ResultDTO(submission.id,
-            "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode in test case {result.find('!') + 1}")
+                             "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode in test case {result.find('!') + 1}")
 
     finalResult = "".join(result)
     finalScore = int(score * submission.maxScore / mxScore)
 
     return ResultDTO(submission.id,
-    finalResult, finalScore, sumTime, mxMem, None)
+                     finalResult, finalScore, sumTime, mxMem, None)

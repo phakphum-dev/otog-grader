@@ -4,21 +4,22 @@ from constants.Enums import VerdictStatus
 
 def verdictColorPat(status) -> str:
     if status == VerdictStatus.accept:
-        return "\033[92m" #? Green
+        return "\033[92m"  # ? Green
     elif status == VerdictStatus.reject:
-        return "\033[91m" #? Red
+        return "\033[91m"  # ? Red
     elif status == VerdictStatus.partial:
-        return "\033[96m" #? blue
+        return "\033[96m"  # ? blue
     elif status == VerdictStatus.runtimeErr:
-        return "\033[95m" #? Magenta
+        return "\033[95m"  # ? Magenta
     elif status == VerdictStatus.timeExceed:
-        return "\033[33m" #? Orange
+        return "\033[33m"  # ? Orange
     elif status == VerdictStatus.skip:
-        return "\033[90m" #? Grey
+        return "\033[90m"  # ? Grey
     elif status == VerdictStatus.err:
-        return "\033[41m"  #? Red with background
+        return "\033[41m"  # ? Red with background
     else:
-        return "\x1b[0m"  #? Just Reset
+        return "\x1b[0m"  # ? Just Reset
+
 
 def verdictSymbol(status: VerdictStatus) -> str:
     if status == VerdictStatus.accept:
@@ -36,6 +37,7 @@ def verdictSymbol(status: VerdictStatus) -> str:
     else:
         return "!"
 
+
 def verdictCodeforces(status: VerdictStatus) -> str:
     if status == VerdictStatus.accept:
         return "Accepted"
@@ -48,15 +50,18 @@ def verdictCodeforces(status: VerdictStatus) -> str:
     elif status == VerdictStatus.runtimeErr:
         return "Runtime error on pretest %d"
     elif status == VerdictStatus.skip:
-        return "Skipping on pretest %d" #? not use
+        return "Skipping on pretest %d"  # ? not use
     else:
         return "Judge error on pretest %d"
+
 
 def verdictColorFormat(status: VerdictStatus, content: str) -> str:
     return f"{verdictColorPat(status)}{content}{verdictColorPat('RESET')}"
 
+
 def verdictsColorSymbol(status: VerdictStatus) -> str:
     return verdictColorFormat(status, verdictSymbol(status))
+
 
 def verdictsColorCodeforces(status: VerdictStatus) -> str:
     return verdictColorFormat(status, verdictCodeforces(status))
@@ -64,10 +69,10 @@ def verdictsColorCodeforces(status: VerdictStatus) -> str:
 
 if __name__ == "__main__":
     print(verdictsColorSymbol(VerdictStatus.accept),
-    verdictsColorSymbol(VerdictStatus.partial),
-    verdictsColorSymbol(VerdictStatus.reject),
-    verdictsColorSymbol(VerdictStatus.runtimeErr),
-    verdictsColorSymbol(VerdictStatus.timeExceed),
-    verdictsColorSymbol(VerdictStatus.skip),
-    verdictsColorSymbol(VerdictStatus.err)
-    )
+          verdictsColorSymbol(VerdictStatus.partial),
+          verdictsColorSymbol(VerdictStatus.reject),
+          verdictsColorSymbol(VerdictStatus.runtimeErr),
+          verdictsColorSymbol(VerdictStatus.timeExceed),
+          verdictsColorSymbol(VerdictStatus.skip),
+          verdictsColorSymbol(VerdictStatus.err)
+          )

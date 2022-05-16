@@ -14,7 +14,6 @@ from constants.osDotEnv import *
 from typing import Callable
 
 
-
 def startJudge(submission: SubmissionDTO,
                onSubmitResult: Callable[[ResultDTO], None],
                onUpdateRuningInCase: Callable[[int, int], None]):
@@ -197,10 +196,9 @@ def startJudge(submission: SubmissionDTO,
         resultLoging(submission, submitResult)
         return
 
-
     submitResult = startEvaluate(
         submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
-    
+
     onSubmitResult(submitResult)
     resultLoging(submission, submitResult)
 

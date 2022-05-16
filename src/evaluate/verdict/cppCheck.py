@@ -5,6 +5,7 @@ import os
 from DTO.testcaseData import TestcaseData
 from constants.Enums import VerdictStatus
 
+
 def getVerdict(testCaseDto: TestcaseData):
     PROBLEM_PATH = f"./source/{testCaseDto.problemId}"
     if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
@@ -21,7 +22,7 @@ def getVerdict(testCaseDto: TestcaseData):
 
     with open("./grader_result.txt", "r") as f:
         result = f.read()
-    
+
     try:
         os.system("rm ./output.txt")
         os.system("rm ./grader_result.txt")

@@ -9,6 +9,7 @@ import judge
 
 reportTextLog = ""
 
+
 def updateResult(result: ResultDTO):
     global reportTextLog
     print(f"\n\n-------------End of submit {result.id}-------------")
@@ -35,19 +36,19 @@ def updateResult(result: ResultDTO):
 
 """
 
+
 def runCase(id, case):
     pass
 
+
 fileExtension = {
-    "c" : ["c","i"],
-    "cpp" : ["cpp","cc","cxx","c++","hpp","hh","hxx","h++","h","ii"],
-    "python" : ["py","rpy","pyw","cpy","gyp","gypi","pyi","ipy"]
+    "c": ["c", "i"],
+    "cpp": ["cpp", "cc", "cxx", "c++", "hpp", "hh", "hxx", "h++", "h", "ii"],
+    "python": ["py", "rpy", "pyw", "cpy", "gyp", "gypi", "pyi", "ipy"]
 }
 
 
-
-
-def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256, timeLim = 10):
+def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256, timeLim=10):
     testEnv()
     nUser = crt * 100 + 69
     # If there is new payload
@@ -74,26 +75,24 @@ if __name__ == "__main__":
         f.write(f"# Report {thisTimeInStr}\n\n_missing_")
     reportTextLog = f"# Report {thisTimeInStr}\n\n"
 
-
-
     def isInt(somStr: str) -> bool:
         try:
             int(somStr)
         except:
             return False
         return True
-    
-    def getLang(ex) : 
+
+    def getLang(ex):
         for lang in fileExtension:
             for e in fileExtension[lang]:
                 if ex == e:
                     return lang
-        
+
         return "?"
 
     allPTestFolder = [x for x in os.listdir(
         f"./testSpace/codes/") if os.path.isdir(f"./testSpace/codes/{x}") and isInt(x)]
-    
+
     crt = 0
 
     for testP in allPTestFolder:
@@ -105,9 +104,10 @@ if __name__ == "__main__":
             print(f"TIP : you can config in testSpace/testCodeDB.ini")
             reportTextLog += f"No config in {testP}.... skiping!\n_you can config in `testSpace/testCodeDB.ini`_\n\n"
             continue
-        
+
         if "TestCase" not in testCaseConfig[testP]:
-            print(f"Please specify the number of test case ({testP}) in testCodeDB.ini")
+            print(
+                f"Please specify the number of test case ({testP}) in testCodeDB.ini")
             reportTextLog += f"_Please specify the number of test case ({testP}) in testCodeDB.ini_\n\n"
             continue
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             configMem = int(testCaseConfig[testP]["Memory"])
         else:
             configMem = 256
-        
+
         if "Time" in testCaseConfig[testP]:
             configTime = int(testCaseConfig[testP]["Time"])
         else:
@@ -132,14 +132,14 @@ if __name__ == "__main__":
             lang = getLang(sFile[sFile.find(".")+1:].strip())
 
             reportTextLog += f"### File : {sFile}\n\n```{lang}\n{codo}\n```\n\n"
-            
+
             testSubmit(crt, sFile, int(
                 testP), codo, testCaseConfig[testP]["TestCase"], lang, configMem, configTime)
-            
+
             crt += 1
 
             reportTextLog += f"---\n\n"
-    
+
     os.remove(f"./testSpace/logs/{logFileName} waiting")
     if reportTextLog == f"# Report {thisTimeInStr}\n\n":
         with open(f"./testSpace/logs/{logFileName}", "w") as f:
@@ -147,4 +147,3 @@ if __name__ == "__main__":
     else:
         with open(f"./testSpace/logs/{logFileName}", "w") as f:
             f.write(reportTextLog)
-
