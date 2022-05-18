@@ -19,31 +19,32 @@ from constants.Enums import *
 MAX_ERROR_LINE = int(osEnv.GRADER_MAX_ERROR_LINE)
 
 
-def strToBool(value : str) -> bool:
-    if value.lower() == "false" or value.lower() == "f" :
+def strToBool(value: str) -> bool:
+    if value.lower() == "false" or value.lower() == "f":
         return False
     return True
+
 
 def testEnv():
     if not path.exists("env"):
         os.mkdir("env")
 
-def prepareLoging(sub:SubmissionDTO):
-    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:return
 
-    
+def prepareLoging(sub: SubmissionDTO):
+    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:
+        return
 
     thisTime = time.localtime(time.time())
     folderName = f"{thisTime.tm_year}{thisTime.tm_mon:02d}{thisTime.tm_mday:02d}"
     if not path.exists("./Logging"):
         os.mkdir("./Logging")
-    
+
     if not path.exists(f"./Logging/{folderName}"):
         os.mkdir(f"./Logging/{folderName}")
 
     replaces = [
         ("subId", sub.id),
-        ("userId", sub.userId), 
+        ("userId", sub.userId),
         ("lang", sub.language),
         ("proId", sub.problemId),
         ("proSec", sub.timeLimit),
@@ -62,15 +63,16 @@ def prepareLoging(sub:SubmissionDTO):
     fileWrite(f"./Logging/{folderName}/{sub.id} waiting.md", strContent)
 
 
-def resultLoging(sub:SubmissionDTO, res:ResultDTO):
-    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:return
+def resultLoging(sub: SubmissionDTO, res: ResultDTO):
+    if strToBool(osEnv.GRADER_ENABLE_OFFLINE_LOGGING) == False:
+        return
 
     thisTime = time.localtime(time.time())
     folderName = f"{thisTime.tm_year}{thisTime.tm_mon:02d}{thisTime.tm_mday:02d}"
 
     replaces = [
         ("subId", sub.id),
-        ("userId", sub.userId), 
+        ("userId", sub.userId),
         ("lang", sub.language),
         ("proId", sub.problemId),
         ("proSec", sub.timeLimit),
@@ -89,32 +91,36 @@ def resultLoging(sub:SubmissionDTO, res:ResultDTO):
     os.remove(f"./Logging/{folderName}/{sub.id} waiting.md")
     fileWrite(f"./Logging/{folderName}/{sub.id}.md", strContent)
 
+
 def initIsolate():
 
     os.system("isolate --cg --cleanup")
 
-    p = subprocess.Popen("isolate --cg --init",shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen("isolate --cg --init", shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pData = p.communicate()
     boxPath = pData[0].decode().strip()
     stdErr = pData[1].decode().strip()
     returnCode = p.returncode
 
     if returnCode != 0:
-        printFail("isolate","Can't init")
+        printFail("isolate", "Can't init")
         print(stdErr)
-        printBlod("isolate","isolate isn't used")
+        printBlod("isolate", "isolate isn't used")
         return None
     return boxPath + "/box"
 
-def isolateMetaReader(content:str):
+
+def isolateMetaReader(content: str):
     content = content.strip().split("\n")
     resultData = dict()
     for line in content:
         if line.find(":") != 1:
             chunk = line.split(":")
             resultData[chunk[0].strip()] = ":".join(chunk[1:]).strip()
-    
+
     return resultData
+
 
 def fileRead(filename):
     try:
@@ -198,7 +204,7 @@ def prepareEnv(problemId, isoPath):
 
 
 def createSourceCode(sourceCode, language, isoPath):
-    
+
     resPath = "./env"
     if isoPath != None:
         resPath = isoPath
@@ -213,7 +219,7 @@ def create(userId, language, sourcePath, problemId, isoPath):
     commandData = None
     compilecmd = None
 
-    #? check problem's custom command.yaml
+    # ? check problem's custom command.yaml
     if os.path.exists(f"source/{problemId}/command.yaml"):
         try:
             with open(f"source/{problemId}/command.yaml", "r") as f:
@@ -233,12 +239,11 @@ def create(userId, language, sourcePath, problemId, isoPath):
             printWarning("COMPILE", f"{language} not found in command.yaml")
 
     if compilecmd == None:
-        compilecmd = langCMD.get(language,"compile")
+        compilecmd = langCMD.get(language, "compile")
     else:
         printHeader("COMPILE", f"use command from command.yaml")
-    compilecmd = compilecmd.replace("[sourcePath]", sourcePath).replace("[problemPath]", f"source/{problemId}")
-    
-   
+    compilecmd = compilecmd.replace("[sourcePath]", sourcePath).replace(
+        "[problemPath]", f"source/{problemId}")
 
     if isoPath != None:
         compilecmd = compilecmd.replace("[binPath]", f"{isoPath}/out")
@@ -248,8 +253,7 @@ def create(userId, language, sourcePath, problemId, isoPath):
         realEnv = "env"
     compilecmd = compilecmd.replace("[env]", realEnv)
 
-
-    #? Compile With time limit of 30 seconds
+    # ? Compile With time limit of 30 seconds
     isTLE = False
     proc = subprocess.Popen([compilecmd], shell=True, preexec_fn=os.setsid)
     try:
@@ -258,7 +262,7 @@ def create(userId, language, sourcePath, problemId, isoPath):
         isTLE = True
     if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-    
+
     if isTLE:
         return "Compilation TLE"
 
@@ -285,101 +289,12 @@ def errMsgHandle(errMes: str) -> str:
     if len(errLines) > MAX_ERROR_LINE:
         errMes = "\n".join(
             errLines[:MAX_ERROR_LINE]) + f"\n\nand {len(errLines) - MAX_ERROR_LINE} more lines..."
-    
+
     pathCensor = ["./env", "/var/local/lib/isolate/0/box"]
     for e in pathCensor:
         errMes = errMes.replace(e, "")
 
     return errMes
-
-
-def execute(userId, problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath):
-    
-    if isoPath != None: #? Use isolate to execute
-        
-        inputFile = f"< ../source/{problemId}/{testcase}.in"
-        cmd = "cd env; "
-        cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
-        cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
-        cmd += f"--run -- {langCMD.get(language,'execute')} "
-        cmd += f"{inputFile} ; exit"
-
-        cmd = cmd.replace("[ioRedirect]", "")
-        cmd = cmd.replace("[sourcePath]", sourcePath.replace(f"{isoPath}/", ""))
-        cmd = cmd.replace("[binPath]", "./out")
-        cmd = cmd.replace("[uBin]", "/usr/bin/")
-
-        p = subprocess.Popen(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p.communicate()
-
-        if not os.path.exists(f"env/isoResult.txt"):
-            printFail("GRADER","isoResult.txt not found")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        try:
-            with open(f"env/isoResult.txt", "r") as f:
-                isoResult = f.read()
-            isoResult = isolateMetaReader(isoResult)
-        except:
-            printFail("GRADER","can't read isoResult.txt")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        
-        if "status" in isoResult and isoResult["status"] == "XX":
-            printFail("GRADER","internal error of the sandbox")
-            printFail("GRADER","ABORT PROCESS!!!")
-            exit(1)
-        
-        if "status" in isoResult and isoResult["status"] == "TO":
-            exitCode = 124
-        elif "exitsig" in isoResult:
-            exitCode = int(isoResult["exitsig"])
-        elif "exitcode" in isoResult:
-            exitCode = int(isoResult["exitcode"])
-        else:
-            exitCode = 0
-
-        timeUse = float(isoResult["time"])
-        memUse = int(isoResult["cg-mem"]) #TODO : CHECK IS IT RIGHT?
-        os.system("chmod 500 env")
-        os.system("chmod 775 env/output.txt")
-        os.system("chmod 775 env/error.txt")
-        os.system(f"cp {isoPath}/output.txt env/output.txt")
-        os.system(f"cp {isoPath}/error.txt env/error.txt")
-
-
-        return exitCode, timeUse, memUse
-    else:
-    
-        ioFile = (
-            f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
-        )
-        cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
-        cmd = cmd.replace("[ioRedirect]", ioFile)
-        cmd = cmd.replace("[sourcePath]", sourcePath.replace("env/", ""))
-
-        
-        cmd = cmd.replace("[binPath]", "./out")
-        cmd = cmd.replace("[uBin]", "")
-        
-        os.system("chmod 500 env")
-        os.system("chmod 775 env/error.txt")
-        os.system("chmod 775 env/output.txt")
-        starttime = time.time()
-        proc = subprocess.Popen([cmd], shell=True, preexec_fn=os.setsid)
-        try:
-            proc.communicate(timeout=(timeLimit / 1000))
-            t = proc.returncode
-        except subprocess.TimeoutExpired:
-            t = 124
-        endtime = time.time()
-        timediff = endtime - starttime
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-        os.system("chmod -R 750 env")
-        return t, timediff, None
 
 
 def stdcmpfunc(fname1, fname2):
@@ -396,25 +311,12 @@ def stdcmpfunc(fname1, fname2):
         return False
 
 
-def getTypeJudge(problemId):
-    PROBLEM_PATH = f"./source/{problemId}"
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
-        return JudgeType.ogogi
-    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
-        proc.communicate()
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        return JudgeType.cppCheck
-    return JudgeType.standard
-
-def getMissingSeqNumberFile(pathTo:str, extension:str, number:int):
+def getMissingSeqNumberFile(pathTo: str, extension: str, number: int):
     """This function will check every file in <pathTo>/{i}.<extension>
     for {i} range from 1 to <number>
     This function will return the list of missing files
-    
-    
+
+
     eg. isSeqNumberFile("testP", "in", 5) it will check testP/1.in, testP/2.in, testP/3.in, testP/4.in and testP/5.in 
     It will return [] if 5 of them are exist
     but if one of them missing like 4.in is missing, It will return [4]"""
@@ -424,8 +326,9 @@ def getMissingSeqNumberFile(pathTo:str, extension:str, number:int):
     for i in range(number):
         if not Path(f"{pathTo}/{i + 1}.{extension}").is_file():
             result.append(i+1)
-        
+
     return result
+
 
 def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"

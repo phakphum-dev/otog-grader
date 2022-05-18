@@ -1,7 +1,7 @@
 from constants.colors import colors
 
 
-def bigPrint(header:str, text, color):
+def bigPrint(header: str, text, color):
     print(f"[ {color}{header.upper()}{colors.RESET} ] {text}")
 
 

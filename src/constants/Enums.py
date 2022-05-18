@@ -1,10 +1,25 @@
 from enum import Enum
 
-class JudgeType( Enum ):
+
+class EvaluateMode(Enum):
+    classic = "classic"
+    codeforces = "codeforces"
+
+
+class JudgeType(Enum):
     ogogi = "ogogi"
     cppCheck = "check.cpp"
     standard = "standard"
 
 
-if __name__ == "__main__":
-    print(JudgeType.ogogi.value)
+class VerdictStatus(Enum):
+    accept = "accept"
+    partial = "partial"
+    reject = "reject"
+
+    timeExceed = "time limit exceed"
+    runtimeErr = "runtime error"
+
+    skip = "skip"
+
+    err = "error"

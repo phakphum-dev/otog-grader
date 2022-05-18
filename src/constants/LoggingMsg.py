@@ -26,7 +26,7 @@ class Logging:
 _result It's not done yet..._
 
 """
-    afterResult ="""
+    afterResult = """
 
 # Report of submission: <!subId!>
 

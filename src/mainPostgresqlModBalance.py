@@ -16,7 +16,8 @@ def main():
 
     while True:
         DBConnect()
-        nGrader, thisGrader = int(osEnv.LOAD_BALANCE_N_GRADER), int(osEnv.LOAD_BALANCE_THIS_GRADER)
+        nGrader, thisGrader = int(osEnv.LOAD_BALANCE_N_GRADER), int(
+            osEnv.LOAD_BALANCE_THIS_GRADER)
         queue = getQueueModBalace(nGrader, thisGrader)
         getQueue()
         if not queue:

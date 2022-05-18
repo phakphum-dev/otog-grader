@@ -6,7 +6,8 @@ from DTO.result import ResultDTO
 from message import *
 from handle import *
 from DTO.submission import SubmissionDTO
-import evaluate
+from evaluate.main import getJudgeType
+from evaluate.main import start as startEvaluate
 from constants.Enums import *
 from constants.osDotEnv import *
 
@@ -101,7 +102,7 @@ def startJudge(submission: SubmissionDTO,
     missingSol = getMissingSeqNumberFile(
         f"./source/{submission.problemId}", "sol", int(submission.testcase))
     # ? to check .sol It depend on type of judge
-    judgeType = getTypeJudge(submission.problemId)
+    judgeType = getJudgeType(submission.problemId)
     if judgeType == JudgeType.standard:
         # ? if it standard, It must have all .sol file
         if missingSol:
@@ -195,20 +196,12 @@ def startJudge(submission: SubmissionDTO,
         resultLoging(submission, submitResult)
         return
 
-    result, finalScore, sumTime, resMem, comment = evaluate.start(
+    submitResult = startEvaluate(
         submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
 
-    submitResult = ResultDTO(
-        id=submission.id,
-        result=result,
-        score=finalScore,
-        sumTime=sumTime,
-        memUse=resMem,
-        errmsg=comment
-    )
     onSubmitResult(submitResult)
     resultLoging(submission, submitResult)
 
     if not err:
-        print(f"\n\t-> Time used: {int(sumTime)} ms.")
-        print(f"\t-> Mem  used: {int(resMem or -1)} kb??")
+        print(f"\n\t-> Time used: {int(submitResult.sumTime)} ms.")
+        print(f"\t-> Mem  used: {int(submitResult.memUse or -1)} kb??")

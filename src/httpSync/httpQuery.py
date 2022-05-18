@@ -1,7 +1,9 @@
 import requests
+import time
 
 from DTO.result import ResultDTO
 from constants.osDotEnv import osEnv
+from message import *
 
 
 def getUrl(path):
@@ -22,7 +24,7 @@ def updateRunningInCase(resultId, case):
 
 
 def updateResult(result: ResultDTO):
-    # TODO : Imprement memUse in DB
+    # TODO : Implement memUse in DB
     status = "accept" if all(
         c in "P[]()" for c in result.result) or result.result == "Accepted" else "reject"
     body = {
@@ -33,4 +35,23 @@ def updateResult(result: ResultDTO):
         "status": status,
         "errmsg": result.errmsg,
     }
-    requests.post(getUrl(f'result/{result.id}'), json=body)
+
+    tries = 0
+    while True:
+        tries += 1
+        printHeader("HTTP", f"Try to post back to grader ({tries} tries)")
+        try:
+            postResult = requests.post(
+                getUrl(f'result/{result.id}'), json=body)
+        except:
+            printFail("HTTP", "Fail to Post... retrying")
+            time.sleep(2)
+            continue
+
+        if postResult.status_code != 200:
+            printFail(
+                "HTTP", f"Fail to Post with code ({postResult.status_code})... retrying")
+            time.sleep(2)
+            continue
+        else:
+            printOKGreen("HTTP", "Posted and Done")
