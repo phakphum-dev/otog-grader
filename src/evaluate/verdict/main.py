@@ -5,9 +5,9 @@ import cmdManager as langCMD
 from message import *
 from handle import isolateMetaReader, error
 
-from evaluate.verdict import standard, cppCheck, ogogi
+from evaluate.verdict import standard, cppCheck, ogogi, thaco
 
-
+from pathlib import Path
 import subprocess
 import os
 import time
@@ -101,6 +101,31 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         return t, timediff, -1
 
 
+def getJudgeType(problemId: int) -> JudgeType:
+    PROBLEM_PATH = f"./source/{problemId}"
+
+    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
+        return JudgeType.ogogi
+
+    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
+        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc.communicate()
+        if os.path.exists("/proc/" + str(proc.pid)):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
+        return JudgeType.cppCheck
+
+    if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file():
+        thisCmd = f"g++ {PROBLEM_PATH}/thaco.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
+        proc.communicate()
+        if os.path.exists("/proc/" + str(proc.pid)):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
+        return JudgeType.thaco
+
+    return JudgeType.standard
+
+
 def checkAnswer(problemId: int, userPath: str, solPath: str, testCase: int, srcPath: str, judgeType: JudgeType):
     testCaseDto = TestcaseData(problemId, userPath, solPath, testCase, srcPath)
 
@@ -108,6 +133,8 @@ def checkAnswer(problemId: int, userPath: str, solPath: str, testCase: int, srcP
         result = cppCheck.getVerdict(testCaseDto)
     elif judgeType == JudgeType.ogogi:
         result = ogogi.getVerdict(testCaseDto)
+    elif judgeType == JudgeType.thaco:
+        result = thaco.getVerdict(testCaseDto)
     else:  # ? use standard
         result = standard.getVerdict(testCaseDto)
 
