@@ -199,6 +199,7 @@ def startJudge(submission: SubmissionDTO,
     submitResult = startEvaluate(
         submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
 
+    print()
     onSubmitResult(submitResult)
     resultLoging(submission, submitResult)
 
