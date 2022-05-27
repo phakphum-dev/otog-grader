@@ -136,7 +136,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
                              "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode in test case {result.find('!') + 1}")
 
     finalResult = "".join(result)
-    finalScore = int(score * submission.maxScore / mxScore)
+    finalScore = round(score * submission.maxScore / mxScore)
 
     return ResultDTO(submission.id,
                      finalResult, finalScore, sumTime, mxMem, None)

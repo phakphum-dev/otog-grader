@@ -55,3 +55,4 @@ def updateResult(result: ResultDTO):
             continue
         else:
             printOKGreen("HTTP", "Posted and Done")
+            break

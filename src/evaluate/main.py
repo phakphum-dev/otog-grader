@@ -1,15 +1,13 @@
-from pathlib import Path
-import subprocess
 import os
-import signal
 
 from DTO.submission import SubmissionDTO
 from DTO.evaluate import EvaluateData
 from DTO.result import ResultDTO
 
-from constants.Enums import EvaluateMode, JudgeType
+from constants.Enums import EvaluateMode
 
 from evaluate import classic, codeforces
+from evaluate.verdict.main import getJudgeType
 
 from handle import fileRead
 from message import *
@@ -21,22 +19,6 @@ def evaModeFromStr(mode: str) -> EvaluateMode:
         return EvaluateMode.codeforces
 
     return EvaluateMode.classic
-
-
-def getJudgeType(problemId: int) -> JudgeType:
-    PROBLEM_PATH = f"./source/{problemId}"
-
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
-        return JudgeType.ogogi
-    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
-        proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
-        proc.communicate()
-        if os.path.exists("/proc/" + str(proc.pid)):
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
-        return JudgeType.cppCheck
-
-    return JudgeType.standard
 
 
 def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase) -> ResultDTO:

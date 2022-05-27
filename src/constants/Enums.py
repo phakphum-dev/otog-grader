@@ -11,6 +11,8 @@ class JudgeType(Enum):
     cppCheck = "check.cpp"
     standard = "standard"
 
+    thaco = "thaco"  # ? https://thaco.tech
+
 
 class VerdictStatus(Enum):
     accept = "accept"
