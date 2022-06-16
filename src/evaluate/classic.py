@@ -133,7 +133,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
     for testInd in seqCase:
         if "!" in result[testInd]:
             return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode in test case {result.find('!') + 1}")
+                             "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode during evaluate")
 
     finalResult = "".join(result)
     finalScore = round(score * submission.maxScore / mxScore)
