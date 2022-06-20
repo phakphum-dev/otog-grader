@@ -2,7 +2,13 @@ from constants.colors import colors
 
 
 def bigPrint(header: str, text, color):
-    print(f"[ {color}{header.upper()}{colors.RESET} ] {text}")
+    lines = text.split("\n")
+    for i, eachLine in enumerate(lines):
+        if i == 0:  # ? print name only first line
+            print(f"[ {color}{header.upper()}{colors.RESET} ]", end=" ")
+        else:
+            print(f"{' '*(len(header) + 4)}", end=" ")
+        print(f"{eachLine.strip()}")
 
 
 def printBlod(header, text):
