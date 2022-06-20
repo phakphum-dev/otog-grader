@@ -27,24 +27,23 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase
     evaData = EvaluateData(submission, srcPath, evaMode, judgeType)
 
     # ? read substask first
-    if os.path.exists(f"./source/{evaData.submission.problemId}/subtask.tc"):
+    if os.path.exists(f"./source/{evaData.submission.problemId}/subtask.json"):
         subContent = fileRead(
-            f"./source/{evaData.submission.problemId}/subtask.tc")
+            f"./source/{evaData.submission.problemId}/subtask.json")
         printHeader("SUBTASK", f"Found custom subtask")
     else:
         subContent = evaData.submission.testcase
-    mxCase, subtaskData = subtask.compile(subContent)
+    problemTaskData = subtask.compile(subContent)
 
-    if mxCase == -1:
-        printFail("SUBTASK", f"Subtask error : {subtaskData}")
-        return ResultDTO(evaData.submission.id, "Judge Error", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...\n\n\n{subtaskData}")
+    if problemTaskData == None:
+        return ResultDTO(evaData.submission.id, "Subtask Error", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...")
 
     # Invalid number of testcase
-    if mxCase <= 0:
+    if problemTaskData.maxCase <= 0:
         printFail("GRADER", "Invalid number of testcase.")
         return ResultDTO(evaData.submission.id, "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..")
 
     if evaMode == EvaluateMode.codeforces:
-        return codeforces.evaluate(evaData, isoPath, onUpdateRuningInCase, mxCase)
+        return codeforces.evaluate(evaData, isoPath, onUpdateRuningInCase, problemTaskData.maxCase)
     else:
-        return classic.evaluate(evaData, isoPath, onUpdateRuningInCase, subtaskData)
+        return classic.evaluate(evaData, isoPath, onUpdateRuningInCase, problemTaskData)
