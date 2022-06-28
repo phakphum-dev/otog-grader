@@ -2,6 +2,7 @@ import os
 
 from DTO.evaluate import EvaluateData
 from DTO.result import ResultDTO
+from DTO.subtask import ProblemTaskDTO, SubtaskDTO
 from handle import error
 from checkType import *
 import cmdManager as langCMD
@@ -12,10 +13,9 @@ from constants.verdict import verdictSymbol, verdictsColorSymbol
 from evaluate.verdict.main import excuteAndVerdict
 
 from message import *
-import subtask
 
 
-def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, subtaskData) -> ResultDTO:
+def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, subtaskData: ProblemTaskDTO) -> ResultDTO:
 
     submission = evaData.submission
 
@@ -23,10 +23,8 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
     printHeader("GRADER", f"Runtime process:")
 
     print("\t-> Result: ", end="", flush=True)
-    testList, testOption = subtaskData
-    seqCase = subtask.getSeq(testOption)
-    isPass = [False for i in range(len(seqCase) + 5)]
-    result = ["" for i in range(len(seqCase) + 5)]
+    isPass = [False for i in range(len(subtaskData.orderIndSubtask) + 5)]
+    result = ["" for i in range(len(subtaskData.orderIndSubtask) + 5)]
     score = 0
     mxScore = 0
     sumTime = 0
@@ -36,12 +34,12 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
         submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
     testTimeLimit = submission.timeLimit * realTimeFactor
 
-    for testInd in seqCase:
+    for testInd in subtaskData.orderIndSubtask:
 
-        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+        if subtaskData.subtasks[testInd].group:
             result[testInd] += "["
             print("[", end="", flush=True)
-        elif len(seqCase) != 1:
+        elif len(subtaskData.orderIndSubtask) != 1:
             result[testInd] += "("
             print("(", end="", flush=True)
 
@@ -51,26 +49,20 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
         isPartial = False
 
         # Check if it prerequisite when it it contest
-        if (submission.contestId) and "require" in testOption[testInd]:
-            allReq = []
-            if isInt(testOption[testInd]["require"]) and testOption[testInd]["require"] <= len(testList):
-                allReq.append(testOption[testInd]["require"])
-            elif isList(testOption[testInd]["require"]):
-                for req in testOption[testInd]["require"]:
-                    if isInt(req) and req <= len(testList):
-                        allReq.append(req)
-            for req in allReq:
+        if (submission.contestId) and subtaskData.subtasks[testInd].require:
+            for req in subtaskData.subtasks[testInd].require:
                 if not isPass[req]:
                     isSkiped = True
+
             if isSkiped:
-                allCrt = len(testList[testInd-1])
+                allCrt = len(subtaskData.subtasks[testInd].cases)
                 correct = 0
                 percentSumScore = 0.0
                 print("S"*allCrt, end="", flush=True)
                 result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
-        for testcaseNum in testList[testInd-1]:
+        for testcaseNum in subtaskData.subtasks[testInd].cases:
 
             if isSkiped:
                 break
@@ -103,8 +95,8 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
             onUpdateRuningInCase(submission.id, testcaseNum)
 
         # calculate score here
-        allCorrect = len(testList[testInd-1])
-        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+        allCorrect = len(subtaskData.subtasks[testInd].cases)
+        if subtaskData.subtasks[testInd].group:
             if correct != allCorrect:
                 correct = 0
                 percentSumScore = 0
@@ -115,23 +107,21 @@ def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, sub
         if isPartial:
             realCorrect = percentSumScore
 
-        if "score" in testOption[testInd]:
-            score += realCorrect * \
-                float(testOption[testInd]["score"]) / allCorrect
-            mxScore += float(testOption[testInd]["score"])
-        else:
-            score += realCorrect
-            mxScore += allCorrect
+        score += realCorrect * \
+            float(subtaskData.subtasks[testInd].score) / allCorrect
+        mxScore += float(subtaskData.subtasks[testInd].score)
 
-        if "group" in testOption[testInd] and testOption[testInd]["group"]:
+        if subtaskData.subtasks[testInd].group:
             result[testInd] += "]"
             print("]", end="", flush=True)
-        elif len(seqCase) != 1:
+        elif len(subtaskData.orderIndSubtask) != 1:
             result[testInd] += ")"
             print(")", end="", flush=True)
 
-    for testInd in seqCase:
-        if "!" in result[testInd]:
+    for res in result:
+        if "!" in res:
+            printFail(
+                "JUDGE ERROR", f"There are some case that '{evaData.judgeType.value}' was explode during evaluate")
             return ResultDTO(submission.id,
                              "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode during evaluate")
 
