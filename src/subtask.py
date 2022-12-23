@@ -1,314 +1,272 @@
-import ast
+from DTO.subtask import *
+import json
 
-from message import printWarning
-
-
-def parseSqBr(content: str):
-    content = content.strip()
-    oIndex = 0
-    mxTestCase = 0
-    res = []
-    while content.find("[", oIndex) != -1:
-        sIndex = content.find("[", oIndex)
-        if content.find("]", oIndex) == -1:
-            return "expected ']' to close '['\nBlame Problem author", -1
-        eIndex = content.find("]", oIndex)
-        oIndex = eIndex+1
-
-        try:
-            list(map(int, content[sIndex+1:eIndex].split(',')))
-        except Exception as e:
-            return f"Error durring convert from text to int\n{e}\nBlame Problem author", -1
-
-        mxTestCase = max(mxTestCase, max(
-            map(int, content[sIndex+1:eIndex].split(','))))
-
-        res.append(list(map(int, content[sIndex+1:eIndex].split(','))))
-    return res, mxTestCase
+from message import *
 
 
-def validRequire(data):
+def getSeq(data: list) -> list:
     n = len(data)
-    graph = [[] for i in range(n+3)]
-    inOrder = [0 for i in range(n+3)]
-    state = [False for i in range(n+3)]
-
-    for i in range(n):
-        if "require" in data[i+1]:
-            if type(data[i+1]["require"]) == type(69) and data[i+1]["require"] <= n:
-                graph[i+1].append(data[i+1]["require"])
-                inOrder[data[i+1]["require"]] += 1
-            elif type(data[i+1]["require"]) == type(list()):
-                for x in data[i+1]["require"]:
-                    if type(x) == type(69) and x <= n:
-                        graph[i+1].append(x)
-                        inOrder[x] += 1
-
-    while True:
-        zero = None
-        isCom = True
-
-        for i in range(n):
-            if inOrder[i+1] == 0 and state[i+1] == False:
-                zero = i+1
-            elif inOrder[i+1] != 0:
-                isCom = False
-
-        if zero == None and not isCom:  # no Topo
-            return False
-
-        if isCom:
-            return True
-
-        for nextNode in graph[zero]:
-            inOrder[nextNode] -= 1
-        state[zero] = True
-
-
-def getSeq(data):
-    n = len(data)
-    graph = [[] for i in range(n+3)]
-    inOrder = [0 for i in range(n+3)]
-    state = [False for i in range(n+3)]
-
-    for i in range(n):
-        if "require" in data[i+1]:
-            if type(data[i+1]["require"]) == type(69) and data[i+1]["require"] <= n:
-                graph[data[i+1]["require"]].append(i+1)
-                inOrder[i+1] += 1
-            elif type(data[i+1]["require"]) == type(list()):
-                for x in data[i+1]["require"]:
-                    if type(x) == type(69) and x <= n:
-                        graph[x].append(i+1)
-                        inOrder[i+1] += 1
     seq = []
+    adj = [[] for i in range(n)]
+    inDeg = [0 for i in range(n)]
+    zero = []
 
-    while True:
-        zero = -1
-        isCom = True
+    for i, sub in enumerate(data):
+        for u in sub.require:
+            adj[u].append(i)
+            inDeg[i] += 1
 
-        for i in range(n):
-            if inOrder[i+1] == 0 and state[i+1] == False:
-                zero = i+1
-            elif inOrder[i+1] != 0:
-                isCom = False
+        if inDeg[i] == 0:
+            zero.append(i)
 
-        if isCom:
-            break
+    while zero:
+        nowNode = zero.pop()
+        seq.append(nowNode)
 
-        for nextNode in graph[zero]:
-            inOrder[nextNode] -= 1
-        state[zero] = True
-        seq.append(zero)
+        for e in adj[nowNode]:
+            inDeg[e] -= 1
+            if inDeg[e] == 0:
+                zero.append(e)
 
-    for i in range(n):
-        if state[i+1] == False:
-            seq.append(i+1)
-
+    if len(seq) != n:
+        return []
     return seq
 
 
-def createDefaultGOption(testList):
-    subtaskData = dict()
-    ind = 1
-    for sub in testList:
-        subtaskData[ind] = {
-            "group": True,
-            "score": len(sub)
+def parseNumFromStr(strContent: str, nNum: int = 1):
+    nums = []
+    l = 0
+    while l < len(strContent):
+        if strContent[l].isdigit():
+            lastR = l
+            for r in range(l + 1, len(strContent)):
+                if strContent[l:(r + 1)].isdigit():
+                    lastR = r
+                else:
+                    break
+            nums.append(int(strContent[l:(lastR + 1)]))
+            l = lastR + 1
+        else:
+            l += 1
+
+    if len(nums) > nNum:
+        nums = nums[:nNum]
+
+    if len(nums) == 1:
+        return nums[0]
+
+    return nums
+
+
+def tryJSONFormat(content: str):
+    try:
+        jsonData = json.loads(content)
+    except Exception as e:
+        return f"Invalid json format...\n{e}"
+
+    return jsonData
+
+
+def tryNumFormat(content: str):
+    try:
+        maxNum = int(content)
+    except:
+        return "Invalid num format... because can't convert to num (integer)"
+
+    if maxNum <= 0:
+        return "Invalid num format... number of testcase must greater than 0"
+
+    return {
+        "version": 1.0,
+        "data": {
+            "subtask 1": {
+                "case": f"1-{maxNum}",
+                "group": False,
+                "score": 100
+            },
         }
-        ind += 1
-    return subtaskData
+    }
 
 
 def compile(content: str):
     content = content.strip()
-    content = content.replace("true", "True").replace("false", "False")
 
-    # if content.startswith("["):
-    #     result, maxCase = parseSqBr(content)
-    #     if maxCase == -1:
-    #         return -1, result
-    #     subtaskData = dict()
-    #     ind = 1
-    #     for sub in result:
-    #         subtaskData[ind] = {
-    #             "group": True,
-    #             "score": len(sub)
-    #         }
-    #         ind += 1
-    #     return maxCase, (result, subtaskData)
-    if content.startswith("{"):
-        try:
-            dataJson = ast.literal_eval(content)
-        except Exception as e:
-            return -1, f"Invalid json?...\n{e}\nBlame Problem author"
+    # * There are 2 format now
+    # * 1. just num
+    # * 2. number of testcase
 
-        if "testList" not in dataJson:
-            return -1, f"expected 'testList'!"
+    JSONResultData = tryJSONFormat(content)
+    numResultData = tryNumFormat(content)
 
-        if type(dataJson["testList"]) != type("Hello"):
-            return -1, f"expected string in testList!"
+    if isinstance(JSONResultData, (int, float)):
+        JSONResultData = "It's num data. NOT JSON"
 
-        testList, mxTestcase = parseSqBr(dataJson["testList"])
+    usedData = None
+    if not isinstance(numResultData, str) and usedData == None:
+        usedData = numResultData
+    elif not isinstance(JSONResultData, str) and usedData == None:
+        usedData = JSONResultData
 
-        if mxTestcase == -1:
-            return -1, testList
+    if usedData == None:
+        # ? can't convert
+        printFail("SUBTASK", "Can't convert with any format...")
+        printFail("JSON", JSONResultData)
+        printFail("NUM", numResultData)
+        return None
 
-        isAllSubtask = True
-        if "options" not in dataJson:
-            isAllSubtask = False
+    # ? Check Data
+    if not isinstance(usedData, dict):
+        printFail("SUBTASK", "Invalid subtask data...\nExpected Dict\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+        return None
+
+    if "version" not in usedData:
+        printFail("SUBTASK", "Invalid subtask data...\nExpected 'version'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+        return None
+
+    if "data" not in usedData:
+        printFail("SUBTASK", "Invalid subtask data...\nExpected 'data'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+        return None
+
+    if not isinstance(usedData["data"], dict):
+        printFail("SUBTASK", "Invalid subtask data...\nExpected Dict in 'Data'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+        return None
+
+    if len(usedData["data"]) == 0:
+        printFail("SUBTASK", "Invalid subtask data...\nNo subtask data? rlly?\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+        return None
+
+    for subN in usedData["data"]:
+        if not isinstance(usedData["data"][subN], dict):
+            printFail(
+                "SUBTASK", f"Invalid subtask data...\nExpected Dict in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+            return None
+
+        if "case" not in usedData["data"][subN]:
+            printFail(
+                "SUBTASK", f"Invalid subtask data...\nExpected case in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+            return None
+
+        if not isinstance(usedData["data"][subN]["case"], str):
+            printFail(
+                "SUBTASK", f"Invalid subtask data...\nExpected 'string' case in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
+            return None
+
+    # ? prepare nameorder
+
+    subtaskNumSet = set()
+    subtaskName = []
+    for s in usedData["data"]:
+        numSubtaskName = parseNumFromStr(s)
+        if numSubtaskName == []:
+            printWarning(
+                "SUBTASK", f"Invalid subtask name\n number of subtask not found (\"{s}\"). Skipping...")
+            continue
+        if numSubtaskName in subtaskNumSet:
+            printWarning(
+                "SUBTASK", f"Invalid subtask name\nfound duplicated number of subtask (\"{s}\").\nIt may not work property!")
+        subtaskName.append(s)
+        subtaskNumSet.add(numSubtaskName)
+
+    subtaskNameToInd = {}
+    subtaskNToInd = {}
+    subtaskName = sorted(subtaskName, key=lambda x: parseNumFromStr(x))
+
+    ind = 0
+    for sName in subtaskName:
+        subtaskNameToInd[sName] = ind
+        subtaskNToInd[parseNumFromStr(sName)] = ind
+        ind += 1
+
+    result = ProblemTaskDTO(0, [], [])
+
+    # ? grab a data
+
+    for subN in subtaskName:
+        thisSubData = SubtaskDTO(69, [], 69, False, [])
+
+        # ? case
+        cases = set()
+        caseDataChunk = usedData["data"][subN]["case"].strip().split(",")
+        for chunk in caseDataChunk:
+            p = parseNumFromStr(chunk, 2)
+            if isinstance(p, list):
+                if p == []:
+                    continue
+                l, r = p
+                if l > r:
+                    l, r = r, l
+                for i in range(l, r + 1):
+                    cases.add(i)
+            else:
+                cases.add(p)
+        cases = list(cases)
+        cases = sorted(cases)
+        thisSubData.cases = cases.copy()
+        result.maxCase = max(result.maxCase, cases[-1])
+
+        # ? score
+        if "score" in usedData["data"][subN]:
+            if isinstance(usedData["data"][subN]["score"], (float, int)):
+                thisSubData.score = float(usedData["data"][subN]["score"])
+            else:
+                thisSubData.score = len(cases)
+                printWarning(
+                    "SUBTASK", f"Invalid score data in {subN}, so use score by counting")
         else:
-            for i in range(len(testList)):
-                if i+1 not in dataJson["options"]:
-                    isAllSubtask = False
-                    break
+            thisSubData.score = len(cases)
 
-                if type(dataJson["options"][i+1]) != type(dict()):
-                    isAllSubtask = False
-                    break
-
-        subtaskData = dict()
-        if isAllSubtask:
-            for i in range(len(testList)):
-                subtaskData[i+1] = dict(dataJson["options"][i+1])
+        # ? group
+        if "group" in usedData["data"][subN]:
+            if isinstance(usedData["data"][subN]["group"], bool):
+                thisSubData.group = usedData["data"][subN]["group"]
+            else:
+                thisSubData.group = True
+                printWarning(
+                    "SUBTASK", f"Invalid group data in {subN}, expected true or false. So use True instead")
         else:
-            printWarning("SUBTASK", "Invalid 'options' so use default instead")
-            subtaskData = createDefaultGOption(testList)
+            thisSubData.group = True
 
-        for i in range(1, len(testList)+1):
-            if "require" in subtaskData[i]:
-                if type(subtaskData[i]["require"]) != type(69) and type(subtaskData[i]["require"]) != type([]):
-                    subtaskData[i]["require"] = []
-                    printWarning(
-                        "SUBTASK", f"Invalid require data in subtask {i}, expected number or list")
+        # ? require
+        thisReq = []
+        if "require" in usedData["data"][subN]:
+            if isinstance(usedData["data"][subN]["require"], (int, list)):
+                if isinstance(usedData["data"][subN]["require"], int):
+                    thisReq = [usedData["data"][subN]["require"]]
+                else:
+                    thisReq = list(set(usedData["data"][subN]["require"]))
 
-            if "score" in subtaskData[i]:
-                if type(subtaskData[i]["score"]) != type(69) and type(subtaskData[i]["score"]) != type(69.2):
-                    subtaskData[i]["score"] = len(testList[i-1])
-                    printWarning(
-                        "SUBTASK", f"Invalid score data in subtask {i}, so use score by counting")
+                for e in thisReq:
+                    if e not in subtaskNToInd:
+                        # ? require void subtask ... skipping
+                        printWarning(
+                            "SUBTASK", f"{subN} has require Subtask {e} which isn't exist.")
+                        continue
+                    thisSubData.require.append(subtaskNToInd[e])
+            else:
+                thisSubData.require = []
+                printWarning(
+                    "SUBTASK", f"Invalid require data in {subN}, expected number or list")
+        else:
+            thisSubData.require = []
 
-            if "group" in subtaskData[i]:
-                if type(subtaskData[i]["group"]) != type(False):
-                    subtaskData[i]["group"] = True
-                    printWarning(
-                        "SUBTASK", f"Invalid group data in subtask {i}, expected true or false. So use True instead")
+        # ? last
+        thisSubData.number = parseNumFromStr(subN)
 
-        if not validRequire(subtaskData):
-            return -1, f"Invalid require (found loop in require)"
+        result.subtasks.append(thisSubData)
 
-        return mxTestcase, (testList, subtaskData)
-    else:  # nums
+    # ? valid require and get sequence
+    result.orderIndSubtask = getSeq(result.subtasks)
+    if result.orderIndSubtask == []:
+        printFail("SUBTASK", f"Invalid require data, Found loop in require")
+        return None
 
-        try:
-            nTest = int(content)
-        except:
-            return -1, "Invalid subtask format :(:(:(\nBlame Problem author"
-        testList = [i for i in range(1, nTest+1)]
-        return nTest, ([[i for i in range(1, nTest + 1)]], {1: {"group": False, "score": nTest}})
-
-
-def finalResult(nowVerdict, bigSubtaskData):
-
-    subtask, subtaskData = bigSubtaskData
-    n = len(subtask)
-    finalVerdict = ["" for i in range(n+3)]
-    isFinal = [False for i in range(n+3)]
-    isAccept = [False for i in range(n+3)]
-    finalScore = 0
-    finalMaxScore = 0
-
-    while True:
-        isComplete = True
-        for i in range(1, n+1):
-            if not isFinal[i]:
-                isReady = True
-                if "require" in subtaskData[i]:
-                    if type(subtaskData[i]["require"]) == type(69) and subtaskData[i]["require"] <= n:
-                        isReady = isFinal[subtaskData[i]["require"]]
-                    elif type(subtaskData[i]["require"]) == type([]):
-                        for req in subtaskData[i]["require"]:
-                            if type(req) == type(69) and req <= n:
-                                isReady = isReady and isFinal[req]
-                if isReady:
-                    if "require" in subtaskData[i]:
-                        allReq = []
-                        if type(subtaskData[i]["require"]) == type(69) and subtaskData[i]["require"] <= n:
-                            allReq.append(subtaskData[i]["require"])
-                        elif type(subtaskData[i]["require"]) == type([]):
-                            for req in subtaskData[i]["require"]:
-                                if type(req) == type(69) and req <= n:
-                                    allReq.append(req)
-
-                        isSkiped = False
-                        for req in allReq:
-                            if not isAccept[req]:
-                                isSkiped = True
-
-                        if isSkiped:
-                            allCrt = len(subtask[i-1])
-                            correct = 0
-                            finalVerdict[i] = "S"*allCrt
-                            isFinal[i] = True
-                            isAccept[i] = False
-                            if "score" in subtaskData[i]:
-                                finalMaxScore += float(subtaskData[i]["score"])
-                            else:
-                                finalMaxScore += allCrt
-                            isComplete = isComplete and isFinal[i]
-                            continue
-
-                    allCrt = len(subtask[i-1])
-                    correct = 0
-                    thisVerdict = ""
-                    for case in subtask[i-1]:
-                        if nowVerdict[case-1] == "P":
-                            correct += 1
-                        thisVerdict += nowVerdict[case-1]
-                    if "group" in subtaskData[i] and subtaskData[i]["group"]:
-                        if correct != allCrt:
-                            correct = 0
-
-                    if "score" in subtaskData[i]:
-                        finalScore += correct * \
-                            float(subtaskData[i]["score"]) / allCrt
-                        finalMaxScore += float(subtaskData[i]["score"])
-                    else:
-                        finalScore += correct
-                        finalMaxScore += allCrt
-
-                    finalVerdict[i] = thisVerdict
-                    isFinal[i] = True
-                    isAccept[i] = (correct == allCrt)
-
-            isComplete = isComplete and isFinal[i]
-
-        if isComplete:
-            finalVerdictStr = ""
-            for i in range(1, n+1):
-                finalVerdictStr += f"[{finalVerdict[i]}]"
-            return finalVerdictStr, finalScore, finalMaxScore
+    return result
 
 
 if __name__ == "__main__":
 
-    mxCase, dataSub = compile("""{
-      "subtask": "[1,2,3][4,5,6][7,8,9,10]",
-      1: {
-        "group": true,
-        "score": 10,
-      },
-      2: {
-        "group": true,
-        "score": 11.4,
-        "require" : 3
-      },
-      3: {
-        "group": true,
-        "score": 45,
-      },
-    }""")
-    print(dataSub)
-    finalVer, score, maxScore = finalResult("---PPPPPP-", dataSub)
-    print("Result :", finalVer)
-    print("Score :", score, "/", maxScore)
+    bruhData = compile("""10""")
+    print(bruhData)
+    if not bruhData == None:
+        for s in bruhData.subtasks:
+            print(s)
