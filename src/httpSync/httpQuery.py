@@ -39,7 +39,9 @@ def updateResult(result: ResultDTO):
     tries = 0
     while True:
         tries += 1
-        printHeader("HTTP", f"Try to post back to grader ({tries} tries)")
+        if tries > 1:
+            #? Don't print on first try
+            printHeader("HTTP", f"Try to post back to grader ({tries} tries)")
         try:
             postResult = requests.post(
                 getUrl(f'result/{result.id}'), json=body)
