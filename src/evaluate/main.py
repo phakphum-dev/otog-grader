@@ -21,7 +21,7 @@ def evaModeFromStr(mode: str) -> EvaluateMode:
     return EvaluateMode.classic
 
 
-def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase) -> ResultDTO:
+def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool, onUpdateRuningInCase) -> ResultDTO:
     evaMode = evaModeFromStr(submission.mode)
     judgeType = getJudgeType(submission.problemId)
     evaData = EvaluateData(submission, srcPath, evaMode, judgeType)
@@ -44,6 +44,6 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, onUpdateRuningInCase
         return ResultDTO(evaData.submission.id, "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..")
 
     if evaMode == EvaluateMode.codeforces:
-        return codeforces.evaluate(evaData, isoPath, onUpdateRuningInCase, problemTaskData.maxCase)
+        return codeforces.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData.maxCase)
     else:
-        return classic.evaluate(evaData, isoPath, onUpdateRuningInCase, problemTaskData)
+        return classic.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData)

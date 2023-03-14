@@ -92,11 +92,12 @@ def resultLoging(sub: SubmissionDTO, res: ResultDTO):
     fileWrite(f"./Logging/{folderName}/{sub.id}.md", strContent)
 
 
-def initIsolate():
+def initIsolate(useControlGroup:bool = True):
 
-    os.system("isolate --cg --cleanup")
 
-    p = subprocess.Popen("isolate --cg --init", shell=True,
+    os.system(f"isolate {useControlGroup and '--cg' or ''} --cleanup")
+
+    p = subprocess.Popen(f"isolate {useControlGroup and '--cg' or ''} --init", shell=True,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pData = p.communicate()
     boxPath = pData[0].decode().strip()

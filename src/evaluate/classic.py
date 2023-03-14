@@ -15,7 +15,7 @@ from evaluate.verdict.main import excuteAndVerdict
 from message import *
 
 
-def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, subtaskData: ProblemTaskDTO) -> ResultDTO:
+def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRuningInCase: str, subtaskData: ProblemTaskDTO) -> ResultDTO:
 
     submission = evaData.submission
 

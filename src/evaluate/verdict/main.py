@@ -14,12 +14,12 @@ import time
 import signal
 
 
-def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath):
+def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, useControlGroup:bool = False):
     if isoPath != None:  # ? Use isolate to execute
 
         inputFile = f"< ../source/{problemId}/{testcase}.in"
         cmd = "cd env; "
-        cmd += "isolate --cg --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
+        cmd += f"isolate {useControlGroup and '--cg' or ''} --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
         cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
         cmd += f"--run -- {langCMD.get(language,'execute')} "
         cmd += f"{inputFile} ; exit"
@@ -63,7 +63,11 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
             exitCode = 0
 
         timeUse = float(isoResult["time"])
-        memUse = int(isoResult["cg-mem"])  # TODO : CHECK IS IT RIGHT?
+        if useControlGroup:
+            memUse = int(isoResult["cg-mem"])  # TODO : CHECK IS IT RIGHT?
+        else:
+            memUse = -1
+            
         os.system("chmod 500 env")
         os.system("chmod 775 env/output.txt")
         os.system("chmod 775 env/error.txt")
