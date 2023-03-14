@@ -24,4 +24,5 @@ class VerdictStatus(Enum):
 
     skip = "skip"
 
-    err = "error"
+    problemErr = "problem error"
+    internalErr = "internal error"

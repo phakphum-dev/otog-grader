@@ -141,8 +141,9 @@ def startJudge(submission: SubmissionDTO,
 
     # ? check and init isolate
     isolateEnvPath = None  # ! None means didn't use isolate
-    if strToBool(osEnv.GRADER_USE_ISOLATE):
-        isolateEnvPath = initIsolate()
+    isolateUseControlGroup = strToBool(osEnv.USE_CONTROL_GROUP)
+    if strToBool(osEnv.USE_ISOLATE):
+        isolateEnvPath = initIsolate(isolateUseControlGroup)
 
     prepareEnv(submission.problemId, isolateEnvPath)
 
@@ -197,7 +198,7 @@ def startJudge(submission: SubmissionDTO,
         return
 
     submitResult = startEvaluate(
-        submission, srcCodePath, isolateEnvPath, onUpdateRuningInCase)
+        submission, srcCodePath, isolateEnvPath, isolateUseControlGroup, onUpdateRuningInCase)
 
     print()
     onSubmitResult(submitResult)

@@ -9,7 +9,7 @@ from constants.Enums import VerdictStatus
 def getVerdict(testCaseDto: TestcaseData):
     PROBLEM_PATH = f"./source/{testCaseDto.problemId}"
     if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
-        return (VerdictStatus.err, 0.0)
+        return (VerdictStatus.problemErr, 0.0)
 
     os.system(f"cp {testCaseDto.userPath} ./output.txt")
     thisCmd = f"{PROBLEM_PATH}/binCheck {testCaseDto.solPath} {PROBLEM_PATH}/{testCaseDto.testCase}.in {testCaseDto.srcPath}"
@@ -30,7 +30,7 @@ def getVerdict(testCaseDto: TestcaseData):
         pass
 
     if t != 0 or len(result.strip()) != 1:
-        return (VerdictStatus.err, 0.0)  # Judge Error... Bruh
+        return (VerdictStatus.problemErr, 0.0)  # Judge Error... Bruh
     if result.strip() == "P":
         return (VerdictStatus.accept, 1.0)
     return (VerdictStatus.reject, 1.0)

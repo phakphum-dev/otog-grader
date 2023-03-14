@@ -12,7 +12,7 @@ from constants.verdict import verdictsColorSymbol, verdictCodeforces, verdictsCo
 from message import *
 
 
-def evaluate(evaData: EvaluateData, isoPath: str, onUpdateRuningInCase: str, mxCase: int) -> ResultDTO:
+def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRuningInCase: str, mxCase: int) -> ResultDTO:
 
     submission = evaData.submission
 
