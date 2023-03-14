@@ -15,7 +15,7 @@ def verdictColorPat(status) -> str:
         return "\033[33m"  # ? Orange
     elif status == VerdictStatus.skip:
         return "\033[90m"  # ? Grey
-    elif status == VerdictStatus.err:
+    elif status == VerdictStatus.problemErr or status == VerdictStatus.internalErr:
         return "\033[41m"  # ? Red with background
     else:
         return "\x1b[0m"  # ? Just Reset
@@ -34,6 +34,8 @@ def verdictSymbol(status: VerdictStatus) -> str:
         return "T"
     elif status == VerdictStatus.skip:
         return "S"
+    elif status == VerdictStatus.problemErr:
+        return "?"
     else:
         return "!"
 
@@ -51,8 +53,10 @@ def verdictCodeforces(status: VerdictStatus) -> str:
         return "Runtime error on pretest %d"
     elif status == VerdictStatus.skip:
         return "Skipping on pretest %d"  # ? not use
+    elif status == VerdictStatus.problemErr:
+        return "Problem Error on pretest %d"
     else:
-        return "Judge error on pretest %d"
+        return "Internal error on pretest %d"
 
 
 def verdictColorFormat(status: VerdictStatus, content: str) -> str:
@@ -74,5 +78,6 @@ if __name__ == "__main__":
           verdictsColorSymbol(VerdictStatus.runtimeErr),
           verdictsColorSymbol(VerdictStatus.timeExceed),
           verdictsColorSymbol(VerdictStatus.skip),
-          verdictsColorSymbol(VerdictStatus.err)
+          verdictsColorSymbol(VerdictStatus.problemErr),
+          verdictsColorSymbol(VerdictStatus.internalErr),
           )

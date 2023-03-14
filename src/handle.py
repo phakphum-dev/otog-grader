@@ -158,6 +158,8 @@ def error(t):
         errCode = "SIGABRT"
         fileWrite("env/error.txt", "SIGABRT||Aborted\n" +
                   fileRead("env/error.txt"))
+    elif t == 69696969:
+        errCode = "ISOERR"
     elif t != 0:
         errCode = "NZEC"
         fileWrite(

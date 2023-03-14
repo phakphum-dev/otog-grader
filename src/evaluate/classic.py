@@ -118,15 +118,22 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             result[testInd] += ")"
             print(")", end="", flush=True)
 
-    for res in result:
-        if "!" in res:
-            printFail(
-                "JUDGE ERROR", f"There are some case that '{evaData.judgeType.value}' was explode during evaluate")
-            return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"It's the problem author's fault!\nGomennasai...\n\n\n{evaData.judgeType.value} was explode during evaluate")
-
+    print()
     finalResult = "".join(result)
     finalScore = round(score * submission.maxScore / mxScore)
+
+    for res in result:
+        if "?" in res:
+            printFail(
+                "PROBLEM ERROR", f"There are some case that '{evaData.judgeType.value}' was explode during evaluate")
+            return ResultDTO(submission.id,
+                             finalResult, 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate")
+        elif "!" in res:
+            printFail(
+                "INTERNAL ERROR", f"Something was explode during evaluate... Isolate?")
+            return ResultDTO(submission.id,
+                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system... like Isolate?")
+    
 
     return ResultDTO(submission.id,
                      finalResult, finalScore, sumTime, mxMem, None)

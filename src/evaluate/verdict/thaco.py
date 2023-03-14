@@ -9,7 +9,7 @@ from constants.Enums import VerdictStatus
 def getVerdict(testCaseDto: TestcaseData):
     PROBLEM_PATH = f"./source/{testCaseDto.problemId}"
     if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
-        return (VerdictStatus.err, 0.0)
+        return (VerdictStatus.problemErr, 0.0)
 
     # ifstream inf(argv[1]); Input file
     # ifstream ans(argv[2]); Expected answer
@@ -26,12 +26,12 @@ def getVerdict(testCaseDto: TestcaseData):
     t = proc.returncode
 
     if t != 0:
-        return (VerdictStatus.err, 0.0)  # Judge Error... Bruh
+        return (VerdictStatus.problemErr, 0.0)  # Judge Error... Bruh
 
     try:
         resultScore = float(resultScore.strip())
     except:
-        return (VerdictStatus.err, 0.0)  # Judge Error... Bruh
+        return (VerdictStatus.problemErr, 0.0)  # Judge Error... Bruh
 
     if abs(resultScore - 1.0) <= 1e-4:  # ? if very close to one
         return (VerdictStatus.accept, 1.0)

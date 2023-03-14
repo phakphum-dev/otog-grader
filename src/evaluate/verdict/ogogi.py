@@ -19,7 +19,7 @@ def getVerdict(testCaseDto: TestcaseData):
 
     result = result.decode(encoding="utf8")
     if t != 0 or len(result.strip()) != 1:
-        return (VerdictStatus.err, 0.0)
+        return (VerdictStatus.problemErr, 0.0)
 
     if result.strip() == "P":
         return (VerdictStatus.accept, 1.0)

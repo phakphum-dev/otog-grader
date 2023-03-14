@@ -21,6 +21,7 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         cmd = "cd env; "
         cmd += f"isolate {useControlGroup and '--cg' or ''} --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
         cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
+
         cmd += f"--run -- {langCMD.get(language,'execute')} "
         cmd += f"{inputFile} ; exit"
 
@@ -30,14 +31,20 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         cmd = cmd.replace("[binPath]", "./out")
         cmd = cmd.replace("[uBin]", "/usr/bin/")
 
-        p = subprocess.Popen(
+        proc = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p.communicate()
+        
+        try:
+            proc.communicate(timeout=(timeLimit / 1000) + 2)
+        except subprocess.TimeoutExpired:
+            if os.path.exists("/proc/" + str(proc.pid)):
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            return 69696969, 0, 0
 
         if not os.path.exists(f"env/isoResult.txt"):
             printFail("GRADER", "isoResult.txt not found")
             printFail("GRADER", "ABORT PROCESS!!!")
-            exit(1)
+            return 69696969, 0, 0
 
         try:
             with open(f"env/isoResult.txt", "r") as f:
@@ -46,12 +53,12 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         except:
             printFail("GRADER", "can't read isoResult.txt")
             printFail("GRADER", "ABORT PROCESS!!!")
-            exit(1)
+            return 69696969, 0, 0
 
         if "status" in isoResult and isoResult["status"] == "XX":
             printFail("GRADER", "internal error of the sandbox")
             printFail("GRADER", "ABORT PROCESS!!!")
-            exit(1)
+            return 69696969, 0, 0
 
         if "status" in isoResult and isoResult["status"] == "TO":
             exitCode = 124
@@ -159,7 +166,8 @@ def excuteAndVerdict(problemId: int, testcase: int, timeLimit: float, memoryLimi
             problemId, userOutputPath, probOutputPath, testcase, sourcePath, judgeType)
 
         return VerdictTestcase(verdictStatus, percentScore, timeDiff, memUse)
-
+    elif errSymbol == "ISOERR":
+        return VerdictTestcase(VerdictStatus.internalErr, 0.0, 0, 0)
     elif errSymbol == "TLE":
         return VerdictTestcase(VerdictStatus.timeExceed, 0.0, timeDiff, memUse)
     else:
