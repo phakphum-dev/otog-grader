@@ -4,6 +4,7 @@ from DTO.submission import SubmissionDTO
 from DTO.evaluate import EvaluateData
 from DTO.result import ResultDTO
 
+from constants.osDotEnv import osEnv
 from constants.Enums import EvaluateMode
 
 from evaluate import classic, codeforces
@@ -22,7 +23,11 @@ def evaModeFromStr(mode: str) -> EvaluateMode:
 
 
 def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool, onUpdateRuningInCase) -> ResultDTO:
-    evaMode = evaModeFromStr(submission.mode)
+    if osEnv.GRADER_FORCE_TO_MODE != "none":
+        evaMode = evaModeFromStr(osEnv.GRADER_FORCE_TO_MODE)
+    else:
+        evaMode = evaModeFromStr(submission.mode)
+
     judgeType = getJudgeType(submission.problemId)
     evaData = EvaluateData(submission, srcPath, evaMode, judgeType)
 

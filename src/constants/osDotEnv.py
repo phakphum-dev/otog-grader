@@ -15,6 +15,7 @@ class osEnv:
     GRADER_MAX_ERROR_LINE = os.environ['GRADER_MAX_ERROR_LINE'] or "300"
     GRADER_TIME_FACTOR = os.environ['GRADER_TIME_FACTOR'] or "1"
     GRADER_ENABLE_OFFLINE_LOGGING = os.environ['GRADER_ENABLE_OFFLINE_LOGGING'] or "False"
+    GRADER_FORCE_TO_MODE = os.environ['GRADER_FORCE_TO_MODE'] or "none"
 
     USE_ISOLATE = os.environ['USE_ISOLATE'] or "True"
     USE_CONTROL_GROUP = os.environ['USE_CONTROL_GROUP'] or "False"
