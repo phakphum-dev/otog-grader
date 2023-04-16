@@ -4,6 +4,7 @@ import signal
 import os
 from DTO.testcaseData import TestcaseData
 from constants.Enums import VerdictStatus
+from message import *
 
 
 def getVerdict(testCaseDto: TestcaseData):
@@ -15,10 +16,21 @@ def getVerdict(testCaseDto: TestcaseData):
     thisCmd = f"{PROBLEM_PATH}/binCheck {testCaseDto.solPath} {PROBLEM_PATH}/{testCaseDto.testCase}.in {testCaseDto.srcPath}"
     proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    proc.communicate()
+    try:
+        proc.communicate(timeout=20)
+    except subprocess.TimeoutExpired:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        printFail("PROBLEM", "check.cpp use too much time (more than 20s)")
+        return (VerdictStatus.problemErr, 0.0)
+
     if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
     t = proc.returncode
+
+    # ? check is grading result file exist
+    if not Path("./grader_result.txt").is_file():
+        printFail("PROBLEM", "grader_result.txt not found")
+        return (VerdictStatus.problemErr, 0.0)
 
     with open("./grader_result.txt", "r") as f:
         result = f.read()
