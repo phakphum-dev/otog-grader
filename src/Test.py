@@ -1,5 +1,7 @@
 import configparser
 import time
+import os, stat
+
 
 from DTO.submission import SubmissionDTO
 from DTO.result import ResultDTO
@@ -49,7 +51,7 @@ fileExtension = {
 
 
 def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256, timeLim=10):
-    testEnv()
+    
     nUser = crt * 100 + 69
     # If there is new payload
     submission = SubmissionDTO(
@@ -62,8 +64,19 @@ def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256,
     )
     judge.startJudge(submission, updateResult, runCase)
 
+def prepareTestEnvironment():
+    #? check is ./testSpace/logs exist or not
+    if not os.path.exists("./testSpace/logs"): os.mkdir("./testSpace/logs")
+
+    if not os.path.exists("./testSpace/codes"): 
+        os.mkdir("./testSpace/codes")
+        os.chmod("./testSpace/codes", 0o0777)
+        printWarning("CODE TESTs", "directory codes justs created, you can add codes to test on grader in pattern like this <problemId>/<code.c>")
 
 if __name__ == "__main__":
+    
+    testEnv() #? in main grader
+    prepareTestEnvironment()
 
     testCaseConfig = configparser.ConfigParser()
     testCaseConfig.read("./testSpace/testCodeDB.ini")
