@@ -66,17 +66,30 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
             if isSkiped:
                 break
-
-            testcaseResult = excuteAndVerdict(
-                submission.problemId,
-                testcaseNum,
-                testTimeLimit,
-                (submission.memoryLimit) * 1024,
-                submission.language,
-                evaData.srcPath,
-                isoPath,
-                evaData.judgeType
-            )
+            
+            try:
+                testcaseResult = excuteAndVerdict(
+                    submission.problemId,
+                    testcaseNum,
+                    testTimeLimit,
+                    (submission.memoryLimit) * 1024,
+                    submission.language,
+                    evaData.srcPath,
+                    isoPath,
+                    evaData.judgeType
+                )
+            except Exception as e:
+                errorStr = str(e)
+                print()
+                if errorStr.startswith("PROBLEM\n"):
+                    errorStr = errorStr[8:]
+                    printFail("PROBLEM", f"Some thing wrong with {evaData.judgeType.value} judge\n\n{e}")
+                    return ResultDTO(submission.id,
+                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{e}")
+                else:
+                    printFail("INTERNAL", f"Some thing wrong in internal grading system or something...:(\n\n{errorStr}")
+                    return ResultDTO(submission.id,
+                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{errorStr}")
 
             sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
             if testcaseResult.memUse != -1:
@@ -122,18 +135,6 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     finalResult = "".join(result)
     finalScore = round(score * submission.maxScore / mxScore)
 
-    for res in result:
-        if "?" in res:
-            printFail(
-                "PROBLEM ERROR", f"There are some case that '{evaData.judgeType.value}' was explode during evaluate")
-            return ResultDTO(submission.id,
-                             finalResult, 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate")
-        elif "!" in res:
-            printFail(
-                "INTERNAL ERROR", f"Something was explode during evaluate... Isolate?")
-            return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system... like Isolate?")
     
-
     return ResultDTO(submission.id,
                      finalResult, finalScore, sumTime, mxMem, None)

@@ -11,15 +11,23 @@ def getVerdict(testCaseDto: TestcaseData):
     thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {testCaseDto.userPath} {PROBLEM_PATH}/ {testCaseDto.testCase}"
     proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    result, _ = proc.communicate()
+    
+    try:
+        result, _ = proc.communicate(timeout=3)
+    except subprocess.TimeoutExpired:
+        raise Exception("PROBLEM\ninteractive_script.py use too much time (more than 3s)")
+    
     t = proc.returncode
+    if t != 0:
+        raise Exception("PROBLEM\ninteractive_script.py return non-zero value")
+
     if os.path.exists("/proc/" + str(proc.pid)):
         # RIP
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
 
     result = result.decode(encoding="utf8")
-    if t != 0 or len(result.strip()) != 1:
-        return (VerdictStatus.problemErr, 0.0)
+    if len(result.strip()) != 1:
+        raise Exception(f"PROBLEM\nOutput from interactive_script.py is not valid\nExpected 1 character but got {result.strip()}")
 
     if result.strip() == "P":
         return (VerdictStatus.accept, 1.0)

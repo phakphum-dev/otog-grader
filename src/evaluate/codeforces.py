@@ -30,17 +30,31 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     testTimeLimit = submission.timeLimit * realTimeFactor
 
     for testcaseNum in range(1, mxCase+1):
+        
+        try:
+            testcaseResult = excuteAndVerdict(
+                submission.problemId,
+                testcaseNum,
+                testTimeLimit,
+                (submission.memoryLimit) * 1024,
+                submission.language,
+                evaData.srcPath,
+                isoPath,
+                evaData.judgeType
+            )
+        except Exception as e:
+            errorStr = str(e)
+            print()
+            if errorStr.startswith("PROBLEM\n"):
+                errorStr = errorStr[8:]
+                printFail("PROBLEM", f"Some thing wrong with {evaData.judgeType.value} judge\n\n{e}")
+                return ResultDTO(submission.id,
+                            "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{e}")
+            else:
+                printFail("INTERNAL", f"Some thing wrong in internal grading system or something...:(\n\n{errorStr}")
+                return ResultDTO(submission.id,
+                            "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{errorStr}")
 
-        testcaseResult = excuteAndVerdict(
-            submission.problemId,
-            testcaseNum,
-            testTimeLimit,
-            (submission.memoryLimit) * 1024,
-            submission.language,
-            evaData.srcPath,
-            isoPath,
-            evaData.judgeType
-        )
 
         resultTime = max(resultTime, testcaseResult.timeUse *
                          1000 // realTimeFactor)
