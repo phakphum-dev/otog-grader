@@ -88,6 +88,9 @@ def tryNumFormat(content: str):
     }
 
 
+SUBTASK_URL_WIKI = "https://github.com/phakphum-dev/otog-doc/wiki/%F0%9F%94%97-%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%AA%E0%B8%B3%E0%B8%AB%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%80%E0%B8%9E%E0%B8%B4%E0%B9%88%E0%B8%A1-%E0%B9%81%E0%B8%81%E0%B9%89%E0%B9%84%E0%B8%82-%E0%B8%81%E0%B8%A5%E0%B8%B8%E0%B9%88%E0%B8%A1%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A-%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B9%83%E0%B8%AB%E0%B8%A1%E0%B9%88"
+
+
 def compile(content: str):
     content = content.strip()
 
@@ -112,44 +115,49 @@ def compile(content: str):
         printFail("SUBTASK", "Can't convert with any format...")
         printFail("JSON", JSONResultData)
         printFail("NUM", numResultData)
-        return None
+        raise Exception(f"Can't convert with any format...\n\n Num : {numResultData} \n\n Json...\n{JSONResultData}")
 
     # ? Check Data
     if not isinstance(usedData, dict):
-        printFail("SUBTASK", "Invalid subtask data...\nExpected Dict\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-        return None
+        msg = f"Invalid subtask data...\nExpected Dict"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
 
     if "version" not in usedData:
-        printFail("SUBTASK", "Invalid subtask data...\nExpected 'version'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-        return None
+        msg = f"Invalid subtask data...\nExpected 'version'"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
 
     if "data" not in usedData:
-        printFail("SUBTASK", "Invalid subtask data...\nExpected 'data'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-        return None
+        msg = f"Invalid subtask data...\nExpected 'data'."
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
 
     if not isinstance(usedData["data"], dict):
-        printFail("SUBTASK", "Invalid subtask data...\nExpected Dict in 'Data'\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-        return None
+        msg = f"Invalid subtask data...\nExpected Dict in 'Data'"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
 
     if len(usedData["data"]) == 0:
-        printFail("SUBTASK", "Invalid subtask data...\nNo subtask data? rlly?\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-        return None
-
+        msg = f"Invalid subtask data...\nNo subtask data? rlly?"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
+    
     for subN in usedData["data"]:
         if not isinstance(usedData["data"][subN], dict):
-            printFail(
-                "SUBTASK", f"Invalid subtask data...\nExpected Dict in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-            return None
+            msg = f"Invalid subtask data...\nExpected Dict in {subN}"
+            printFail("SUBTASK", msg)
+            raise Exception(msg)
 
         if "case" not in usedData["data"][subN]:
-            printFail(
-                "SUBTASK", f"Invalid subtask data...\nExpected case in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-            return None
+            msg = f"Invalid subtask data...\nExpected case in {subN}"
+            printFail("SUBTASK", msg)
+            raise Exception(msg)
 
         if not isinstance(usedData["data"][subN]["case"], str):
-            printFail(
-                "SUBTASK", f"Invalid subtask data...\nExpected 'string' case in {subN}\nsee https://github.com/phakphum-dev/otog-doc/blob/main/Problem/Subtask.md for more detail.")
-            return None
+            msg = f"Invalid subtask data...\nExpected 'string' case in {subN}"
+            printFail("SUBTASK", msg)
+            raise Exception(msg)
 
     # ? prepare nameorder
 
@@ -257,8 +265,14 @@ def compile(content: str):
     # ? valid require and get sequence
     result.orderIndSubtask = getSeq(result.subtasks)
     if result.orderIndSubtask == []:
-        printFail("SUBTASK", f"Invalid require data, Found loop in require")
-        return None
+        msg = f"Invalid require data, Found loop in require"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
+
+    if result.maxCase <= 0:
+        msg = f"Invalid subtask data...\nNo case found (max case less than 1)"
+        printFail("SUBTASK", msg)
+        raise Exception(msg)
 
     return result
 

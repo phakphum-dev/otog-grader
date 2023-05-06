@@ -23,6 +23,10 @@ class osEnv:
     SYNC_HOST = os.environ['SYNC_HOST']
     SYNC_PORT = os.environ['SYNC_PORT']
 
+    DISCORD_SEND_MESSAGE_WHEN_ERROR = os.environ['DISCORD_SEND_MESSAGE_WHEN_ERROR'] or "False"
+    DISCORD_BOT_TOKEN = os.environ['DISCORD_BOT_TOKEN'] or ""
+    DISCORD_CHANNEL_ID = os.environ['DISCORD_CHANNEL_ID'] or ""
+
 
 if __name__ == "__main__":
     print(osEnv.POSTGRES_HOST)
