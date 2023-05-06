@@ -13,6 +13,7 @@ from evaluate.verdict.main import getJudgeType
 from handle import fileRead
 from message import *
 import subtask
+import errorLogging
 
 
 def evaModeFromStr(mode: str) -> EvaluateMode:
@@ -38,17 +39,20 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool
         printHeader("SUBTASK", f"Found custom subtask")
     else:
         subContent = evaData.submission.testcase
-    problemTaskData = subtask.compile(subContent)
+    
+    try:
+        problemTaskData = subtask.compile(subContent)
+    except Exception as e:
+        errorLogging.writeSubtaskErrorLog(submission, str(e))
+        return ResultDTO(evaData.submission.id, "Subtask Error", 0, 0, 0, str(e))
 
-    if problemTaskData == None:
-        return ResultDTO(evaData.submission.id, "Subtask Error", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo...")
-
-    # Invalid number of testcase
-    if problemTaskData.maxCase <= 0:
-        printFail("GRADER", "Invalid number of testcase.")
-        return ResultDTO(evaData.submission.id, "Invalid nCase", 0, 0, 0, f"Subtask error!!\nIt's the problem author's fault!\nNoooooo..")
-
+    # ? start evaluate
     if evaMode == EvaluateMode.codeforces:
-        return codeforces.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData.maxCase)
+        evaResult = codeforces.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData.maxCase)
     else:
-        return classic.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData)
+        evaResult = classic.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData)
+    
+    if evaResult.result in ["Problem Error", "Judge Error", "Subtask Error"]:
+        errorLogging.writeInternalErrorLog(submission, evaResult)
+    
+    return evaResult

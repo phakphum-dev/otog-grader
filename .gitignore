@@ -171,3 +171,4 @@ config.ini
 source
 command.yaml
 dummy.py
+Logging/internalError/
