@@ -33,7 +33,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     realTimeFactor = langCMD.get(
         submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
     testTimeLimit = submission.timeLimit * realTimeFactor
-
+    
     for testInd in subtaskData.orderIndSubtask:
 
         if subtaskData.subtasks[testInd].group:
@@ -62,7 +62,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
-        for testcaseNum in subtaskData.subtasks[testInd].cases:
+        for indTestNum, testcaseNum in enumerate(subtaskData.subtasks[testInd].cases):
 
             if isSkiped:
                 break
@@ -99,11 +99,18 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 correct += 1
             elif testcaseResult.status == VerdictStatus.partial:
                 isPartial = True
-
             percentSumScore += testcaseResult.percent
 
             result[testInd] += verdictSymbol(testcaseResult.status)
             print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
+
+            #? skip the other testcase when it isn't accept and grouped subtask
+            if subtaskData.subtasks[testInd].group and testcaseResult.status != VerdictStatus.accept:
+                nRemain = len(subtaskData.subtasks[testInd].cases) - indTestNum - 1
+                result[testInd] += "S"*nRemain
+                print("S"*nRemain, end="", flush=True)
+                break
+
 
             onUpdateRuningInCase(submission.id, testcaseNum)
 
