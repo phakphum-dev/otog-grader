@@ -20,11 +20,11 @@ def getVerdict(testCaseDto: TestcaseData):
 
 
     try:
-        resultScore, judgeComment = proc.communicate(timeout=3)
+        resultScore, judgeComment = proc.communicate(timeout=5)
         #             ^ not use now...
     except subprocess.TimeoutExpired:
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-        raise Exception("PROBLEM\nthaco.cpp use too much time (more than 3s)")
+        raise Exception("PROBLEM\nthaco.cpp use too much time (more than 5s)")
 
     if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
