@@ -17,10 +17,10 @@ def getVerdict(testCaseDto: TestcaseData):
     proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
-        proc.communicate(timeout=3)
+        proc.communicate(timeout=5)
     except subprocess.TimeoutExpired:
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-        raise Exception("PROBLEM\ncheck.cpp use too much time (more than 3s)")
+        raise Exception("PROBLEM\ncheck.cpp use too much time (more than 5s)")
 
     if os.path.exists("/proc/" + str(proc.pid)):
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
