@@ -1,12 +1,13 @@
 import traceback
-import psycopg
+import psycopg2
+import psycopg2.extras
 
 from constants.colors import colors
 from .dbConfig import dbConfig
 
 
 def init():
-    return psycopg.connect(**dbConfig)
+    return psycopg2.connect(**dbConfig)
 
 
 class DB:
@@ -24,7 +25,7 @@ class DB:
 
     def query(self, sql, value=()):
         try:
-            cursor = self.conn.cursor()
+            cursor = self.conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
             cursor.execute(sql, value)
             return cursor
         except Exception:

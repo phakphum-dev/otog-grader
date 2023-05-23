@@ -21,16 +21,16 @@ def main():
             time.sleep(1)
             continue
         subDTO = SubmissionDTO(
-            id=queue[0],
-            userId=queue[1],
-            problemId=queue[2],
-            contestId=queue[8],
-            sourceCode=queue[9],
-            language=queue[10],
-            maxScore=queue[16],
-            timeLimit=queue[17],
-            memoryLimit=queue[18],
-            testcase=queue[21],
+            id=queue.id,
+            userId=queue.userId,
+            problemId=queue.problemId,
+            contestId=queue.contestId,
+            sourceCode=queue.sourceCode,
+            language=queue.language,
+            maxScore=queue.maxScore,
+            timeLimit=queue.timeLimit,
+            memoryLimit=queue.memoryLimit,
+            testcase=queue.case,
             mode="classic"
         )
         judge.startJudge(subDTO, updateResult, updateRunningInCase)
