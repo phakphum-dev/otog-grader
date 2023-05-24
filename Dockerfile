@@ -12,6 +12,7 @@ ENV PATH="/usr/src/app/venv/bin:$PATH"
 
 COPY requirements.txt .
 
+RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
 RUN pip3 install --requirement requirements.txt
 
 FROM alpine:3.15
@@ -21,6 +22,8 @@ WORKDIR /usr/src/app
 RUN apk add --update --no-cache python3 gcc g++
 
 RUN apk add --update --no-cache git make libcap-dev asciidoc
+
+RUN apk --no-cache add libpq   
 
 RUN git clone https://github.com/ioi/isolate.git
 

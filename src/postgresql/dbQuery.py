@@ -48,7 +48,7 @@ def getQueueModBalace(nGrader:int, thisGrader:int):
     #thisGrader will count from 1 to nGrader
     db.update()
     cur = db.query(
-        f"""SELECT * FROM submission as S
+        f"""SELECT S.*, B."timeLimit", B."memoryLimit", B."case", B."score" as "maxScore" FROM submission as S
             LEFT JOIN problem as B ON S."problemId" = B."id"
             WHERE status = 'waiting' AND mod(S.id,{nGrader}) = {thisGrader - 1} ORDER BY S."creationDate" """
     )
@@ -59,7 +59,7 @@ def getQueueModBalace(nGrader:int, thisGrader:int):
 def getQueue():
     db.update()
     cur = db.query(
-        f"""SELECT * FROM submission as S
+        f"""SELECT S.*, B."timeLimit", B."memoryLimit", B."case", B."score" as "maxScore" FROM submission as S
             LEFT JOIN problem as B ON S."problemId" = B."id"
             WHERE status = 'waiting' ORDER BY S."creationDate" """
     )
