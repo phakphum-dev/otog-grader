@@ -13,9 +13,9 @@ def getVerdict(testCaseDto: TestcaseData):
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     try:
-        result, _ = proc.communicate(timeout=15)
+        result, _ = proc.communicate(timeout=60)
     except subprocess.TimeoutExpired:
-        raise Exception("PROBLEM\ninteractive_script.py use too much time (more than 15s)")
+        raise Exception("PROBLEM\ninteractive_script.py use too much time (more than 1 minute)")
     
     t = proc.returncode
     if t != 0:
