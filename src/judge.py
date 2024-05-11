@@ -1,5 +1,4 @@
 from pathlib import Path
-from datetime import datetime
 import tabulate
 from DTO.result import ResultDTO
 
@@ -12,6 +11,7 @@ from constants.Enums import *
 from constants.osDotEnv import *
 
 from typing import Callable
+from datetime import datetime
 
 
 def startJudge(submission: SubmissionDTO,

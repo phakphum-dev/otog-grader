@@ -39,7 +39,7 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         except subprocess.TimeoutExpired:
             if os.path.exists("/proc/" + str(proc.pid)):
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            raise Exception("Isolate use time over limit or not terminated in time")
+            raise Exception("Warning : Isolate use time over limit or not terminated in time")
 
         if not os.path.exists(f"env/isoResult.txt"):
             raise Exception("Isolate\nisoResult.txt not found")

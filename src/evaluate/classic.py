@@ -11,6 +11,7 @@ from constants.Enums import VerdictStatus
 from constants.verdict import verdictSymbol, verdictsColorSymbol
 
 from evaluate.verdict.main import excuteAndVerdict
+import errorLogging
 
 from message import *
 
@@ -81,7 +82,11 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             except Exception as e:
                 errorStr = str(e)
                 print()
-                if errorStr.startswith("PROBLEM\n"):
+                if errorStr[:7].lower() == "warning":
+                    printFail("WARNING", f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}")
+                    result[testInd] += verdictSymbol(VerdictStatus.runtimeErr)
+                    errorLogging.writeInternalWarningLog(submission, errorStr, VerdictStatus.runtimeErr, "Ignorable Judge or Problem Error")
+                elif errorStr.startswith("PROBLEM\n"):
                     errorStr = errorStr[8:]
                     printFail("PROBLEM", f"Some thing wrong with {evaData.judgeType.value} judge\n\n{e}")
                     return ResultDTO(submission.id,
@@ -90,19 +95,20 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                     printFail("INTERNAL", f"Some thing wrong in internal grading system or something...:(\n\n{errorStr}")
                     return ResultDTO(submission.id,
                              "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{errorStr}")
+            else:
 
-            sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
-            if testcaseResult.memUse != -1:
-                mxMem = max(mxMem or 0, testcaseResult.memUse)
+                sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
+                if testcaseResult.memUse != -1:
+                    mxMem = max(mxMem or 0, testcaseResult.memUse)
 
-            if testcaseResult.status == VerdictStatus.accept:
-                correct += 1
-            elif testcaseResult.status == VerdictStatus.partial:
-                isPartial = True
-            percentSumScore += testcaseResult.percent
+                if testcaseResult.status == VerdictStatus.accept:
+                    correct += 1
+                elif testcaseResult.status == VerdictStatus.partial:
+                    isPartial = True
+                percentSumScore += testcaseResult.percent
 
-            result[testInd] += verdictSymbol(testcaseResult.status)
-            print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
+                result[testInd] += verdictSymbol(testcaseResult.status)
+                print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
 
             #? skip the other testcase when it isn't accept and grouped subtask
             if subtaskData.subtasks[testInd].group and testcaseResult.status != VerdictStatus.accept:
