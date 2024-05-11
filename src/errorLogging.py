@@ -228,7 +228,10 @@ def getDiscordTestcaseErrorPayloads(submission: SubmissionDTO, errMsg : str, isS
             },
             }
         ],
-        "components": components
+        "components": [{
+            "type": 1,
+            "components": components
+        }]
     }
 
     if isSubtaskError:
