@@ -1,7 +1,7 @@
 import codecs
 import os
 import signal
-import time
+import time, datetime
 import subprocess
 import yaml
 from os import path
@@ -377,3 +377,7 @@ def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
 
     # Standard Judge
     return stdcmpfunc(userPath, solPath) and "P" or "-"
+
+def getNowTimeStamp():
+    now = time.time()
+    return datetime.datetime.fromtimestamp(now).strftime('%Y-%m-%dT%H:%M:%S.000Z')

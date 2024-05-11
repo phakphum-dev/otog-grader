@@ -10,6 +10,7 @@ from evaluate.verdict.main import excuteAndVerdict
 from constants.verdict import verdictsColorSymbol, verdictCodeforces, verdictsColorCodeforces
 
 from message import *
+import errorLogging
 
 
 def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRuningInCase: str, mxCase: int) -> ResultDTO:
@@ -45,7 +46,13 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
         except Exception as e:
             errorStr = str(e)
             print()
-            if errorStr.startswith("PROBLEM\n"):
+            if errorStr.startswith("WARNING"):
+                printFail("WARNING", f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}")
+                result = verdictCodeforces(VerdictStatus.runtimeErr).replace("%d", str(testcaseNum))
+                errorLogging.writeInternalWarningLog(submission, errorStr, VerdictStatus.runtimeErr, "Ignorable Judge or Problem Error")
+                return ResultDTO(submission.id,
+                            result, 0, resultTime, resultMem, f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}")
+            elif errorStr.startswith("PROBLEM\n"):
                 errorStr = errorStr[8:]
                 printFail("PROBLEM", f"Some thing wrong with {evaData.judgeType.value} judge\n\n{e}")
                 return ResultDTO(submission.id,

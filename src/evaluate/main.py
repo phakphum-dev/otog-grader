@@ -53,6 +53,6 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool
         evaResult = classic.evaluate(evaData, isoPath, useControlGroup, onUpdateRuningInCase, problemTaskData)
     
     if evaResult.result in ["Problem Error", "Judge Error", "Subtask Error"]:
-        errorLogging.writeInternalErrorLog(submission, evaResult)
+        errorLogging.writeInternalErrorLog(submission, evaResult, evaResult.result)
     
     return evaResult
