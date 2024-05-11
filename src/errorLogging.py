@@ -251,7 +251,10 @@ def getDiscordTestcaseErrorPayloads(submission: SubmissionDTO, errMsg : str, isS
 
     detailsPayload = {
         "content": msg,
-        "components": components
+        "components": [{
+            "type": 1,
+            "components": components
+        }]
     }
 
 
