@@ -27,6 +27,9 @@ class osEnv:
     DISCORD_BOT_TOKEN = os.environ['DISCORD_BOT_TOKEN'] or ""
     DISCORD_CHANNEL_ID = os.environ['DISCORD_CHANNEL_ID'] or ""
 
+    OTOG_HOST = os.environ['OTOG_HOST']
+    OTOG_API = os.environ['OTOG_API']
+
 
 if __name__ == "__main__":
     print(osEnv.POSTGRES_HOST)

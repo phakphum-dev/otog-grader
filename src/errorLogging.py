@@ -107,19 +107,19 @@ def getDiscordUserSubPayload(submission: SubmissionDTO, result : ResultDTO):
                         "type": 2,
                         "label": "Submission",
                         "style": 5,
-                        "url": f"https://otog.cf/submission/{submission.id}"
+                        "url": f"{osEnv.OTOG_HOST}/submission/{submission.id}"
                     },
                     {
                         "type": 2,
                         "label": "User",
                         "style": 5,
-                        "url": f"https://otog.cf/profile/{submission.userId}"
+                        "url": f"{osEnv.OTOG_HOST}/profile/{submission.userId}"
                     },
                     {
                         "type": 2,
                         "label": "Problem Doc",
                         "style": 5,
-                        "url": f"https://api.otog.cf/problem/doc/{submission.problemId}"
+                        "url": f"{osEnv.OTOG_API}/problem/doc/{submission.problemId}"
                     }
                 ]
             }
@@ -164,7 +164,7 @@ def getDiscordSubtaskPayload(submission: SubmissionDTO, errMsg : str):
                         "type": 2,
                         "label": "Problem Doc",
                         "style": 5,
-                        "url": f"https://api.otog.cf/problem/doc/{submission.problemId}"
+                        "url": f"{osEnv.OTOG_API}/problem/doc/{submission.problemId}"
                     },
                     {
                         "type": 2,
