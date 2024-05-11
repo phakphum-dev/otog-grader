@@ -125,7 +125,7 @@ def getSubLinkContent(submission: SubmissionDTO):
             }
         ]
 
-def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, errorCode = "error code"):
+def getProblemFileStructure(submission: SubmissionDTO):
     fileStructureStr = f"{submission.problemId}/"
     filesStr = []
     for path, subdirs, files in os.walk(f"./source/{submission.problemId}"):
@@ -133,6 +133,10 @@ def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, err
             filesStr.append(os.path.join(path, name).removeprefix(f"./source/{submission.problemId}/"))
     filesStr = sorted(filesStr)
     fileStructureStr += "\n\t" + "\n\t".join(filesStr)
+    return fileStructureStr
+
+def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, errorCode = "error code"):
+    fileStructureStr = getProblemFileStructure(submission)
 
     mainPayload = {
         "embeds": [
@@ -173,7 +177,7 @@ def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, err
     return [mainPayload, detailsPayload]
 
 
-def getDiscordSubtaskPayloads(submission: SubmissionDTO, errMsg : str):
+def getDiscordTestcaseErrorPayloads(submission: SubmissionDTO, errMsg : str, isSubtaskError = False):
     subtaskStr = "ไม่มีง่ะ"
     if os.path.exists(f"./source/{submission.problemId}/subtask.json"):
         with open(f"./source/{submission.problemId}/subtask.json", "r") as f:
@@ -195,39 +199,52 @@ def getDiscordSubtaskPayloads(submission: SubmissionDTO, errMsg : str):
                             "animated": False
                         },
                     },
-                    {
-                        "type": 2,
-                        "label": "Subtask Wiki",
-                        "style": 5,
-                        "url": "https://github.com/phakphum-dev/otog-doc/wiki/%F0%9F%94%97-%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%AA%E0%B8%B3%E0%B8%AB%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%80%E0%B8%9E%E0%B8%B4%E0%B9%88%E0%B8%A1-%E0%B9%81%E0%B8%81%E0%B9%89%E0%B9%84%E0%B8%82-%E0%B8%81%E0%B8%A5%E0%B8%B8%E0%B9%88%E0%B8%A1%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A-%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B9%83%E0%B8%AB%E0%B8%A1%E0%B9%88",
-                        "emoji": {
-                            "name": "❓",
-                            "animated": False
-                        },
-                    }
                 ]
+    if isSubtaskError:
+        components.append(
+            {
+                "type": 2,
+                "label": "Subtask Wiki",
+                "style": 5,
+                "url": "https://github.com/phakphum-dev/otog-doc/wiki/%F0%9F%94%97-%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%AA%E0%B8%B3%E0%B8%AB%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%80%E0%B8%9E%E0%B8%B4%E0%B9%88%E0%B8%A1-%E0%B9%81%E0%B8%81%E0%B9%89%E0%B9%84%E0%B8%82-%E0%B8%81%E0%B8%A5%E0%B8%B8%E0%B9%88%E0%B8%A1%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A-%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B9%83%E0%B8%AB%E0%B8%A1%E0%B9%88",
+                "emoji": {
+                    "name": "❓",
+                    "animated": False
+                },
+            }
+        )
+    
+    subtaskTitle = " subtask ของ" if isSubtaskError else ""
     mainPayload = {
         "embeds": [
             {
-            "title": f":skull: Subtask ของ Problem {submission.problemId} แตก!!! :skull:",
+            "title": f":skull:{subtaskTitle} Problem {submission.problemId} แตก!!! :skull:",
             "description": f"สาเหตุที่ระบบด่ากลับมา\n```\n{errMsg}\n```",
             "color": 15409955,
             "fields": [],
             "timestamp": getNowTimeStamp(),
             "footer": {
-                "text": "SUBTASK ERROR"
+                "text": "SUBTASK ERROR" if isSubtaskError else "TESTCASE ERROR"
             },
             }
         ],
         "components": components
     }
 
-    msg = f"""ข้อมูลจำนวนเทสเคสจาก Otog : `{submission.testcase}` (อาจไม่ได้ใช้ ถ้าใช้ subtask.json)
+    if isSubtaskError:
+
+        msg = f"""ข้อมูลจำนวนเทสเคสจาก Otog : `{submission.testcase}` (อาจไม่ได้ใช้ ถ้าใช้ subtask.json)
 
 ข้อมูลจาก subtask.json
 ```json
 {subtaskStr}
 ```"""
+    else:
+        msg = f""":file_folder:Structure ในข้อที่ `{submission.problemId}` (ถ้าอยากรู้)
+```
+{getProblemFileStructure(submission)}
+```
+"""
 
     detailsPayload = {
         "content": msg,
@@ -285,7 +302,15 @@ def writeInternalWarningLog(submission: SubmissionDTO, errorMsg : str, verdict :
 def writeSubtaskErrorLog(submission: SubmissionDTO, errMsg : str):
     #? send to discord to notify problem author
     if isDiscordErrorSend:
-        mainPayload, detailPayload = getDiscordSubtaskPayloads(submission, errMsg)
+        mainPayload, detailPayload = getDiscordTestcaseErrorPayloads(submission, errMsg, True)
         cId = discordSendMsg(mainPayload)["id"]
-        discordCreateThread(cId, f"Grader ระเบิด!! ({submission.id})")
+        discordCreateThread(cId, f"Subtask ระเบิด!! ({submission.id})")
+        discordSendMsg(detailPayload, cId)
+
+def writeTestcaseErrorLog(submission: SubmissionDTO, errMsg : str):
+    #? send to discord to notify problem author
+    if isDiscordErrorSend:
+        mainPayload, detailPayload = getDiscordTestcaseErrorPayloads(submission, errMsg, False)
+        cId = discordSendMsg(mainPayload)["id"]
+        discordCreateThread(cId, f"โจทย์ ระเบิด!! ({submission.id})")
         discordSendMsg(detailPayload, cId)
