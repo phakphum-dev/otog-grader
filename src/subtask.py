@@ -233,6 +233,27 @@ def compile(content: str):
                     "SUBTASK", f"Invalid group data in {subN}, expected true or false. So use True instead")
         else:
             thisSubData.group = True
+        
+        if "option" in usedData["data"][subN]:
+            option = usedData["data"][subN]["option"]
+            if thisSubData.group:
+                printWarning(
+                    "SUBTASK", f"option can not be used in group subtask. So use sum instead")
+                thisSubData.option = SubtaskOption.sum
+            elif not isinstance(option, str):
+                
+                thisSubData.option = SubtaskOption.sum
+                printWarning(
+                    "SUBTASK", f"Invalid option data in {subN}, expected string. So use sum instead")
+            else:
+                if option not in SubtaskOption.__members__:
+                    thisSubData.option = SubtaskOption.sum
+                    printWarning(
+                    "SUBTASK", f"Invalid option data in {subN}, invalid option {option}. So use sum instead")
+                else:
+                    thisSubData.option = SubtaskOption(option)
+        else:
+            thisSubData.option = SubtaskOption.sum
 
         # ? require
         thisReq = []

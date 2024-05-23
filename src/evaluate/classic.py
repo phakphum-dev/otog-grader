@@ -2,7 +2,7 @@ import os
 
 from DTO.evaluate import EvaluateData
 from DTO.result import ResultDTO
-from DTO.subtask import ProblemTaskDTO, SubtaskDTO
+from DTO.subtask import ProblemTaskDTO, SubtaskDTO, SubtaskOption
 from handle import error
 from checkType import *
 import cmdManager as langCMD
@@ -37,7 +37,9 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     
     for testInd in subtaskData.orderIndSubtask:
 
-        if subtaskData.subtasks[testInd].group:
+        cur_subtask = subtaskData.subtasks[testInd]
+
+        if cur_subtask.group:
             result[testInd] += "["
             print("[", end="", flush=True)
         elif len(subtaskData.orderIndSubtask) != 1:
@@ -45,25 +47,25 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             print("(", end="", flush=True)
 
         correct = 0
-        percentSumScore = 0.0
+        percent_testcase_scores = []
         isSkiped = False
         isPartial = False
 
         # Check if it prerequisite when it it contest
-        if (submission.contestId) and subtaskData.subtasks[testInd].require:
-            for req in subtaskData.subtasks[testInd].require:
+        if (submission.contestId) and cur_subtask.require:
+            for req in cur_subtask.require:
                 if not isPass[req]:
                     isSkiped = True
 
             if isSkiped:
-                allCrt = len(subtaskData.subtasks[testInd].cases)
+                allCrt = len(cur_subtask.cases)
                 correct = 0
-                percentSumScore = 0.0
+                percent_testcase_scores = [0]*allCrt
                 print("S"*allCrt, end="", flush=True)
                 result[testInd] += "S"*allCrt
                 isPass[testInd] = False
 
-        for indTestNum, testcaseNum in enumerate(subtaskData.subtasks[testInd].cases):
+        for indTestNum, testcaseNum in enumerate(cur_subtask.cases):
 
             if isSkiped:
                 break
@@ -103,16 +105,19 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
                 if testcaseResult.status == VerdictStatus.accept:
                     correct += 1
+                    percent_testcase_scores.append(1)
                 elif testcaseResult.status == VerdictStatus.partial:
                     isPartial = True
-                percentSumScore += testcaseResult.percent
+                    percent_testcase_scores.append(testcaseResult.percent)
+                else:
+                    percent_testcase_scores.append(0)
 
                 result[testInd] += verdictSymbol(testcaseResult.status)
                 print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
 
             #? skip the other testcase when it isn't accept and grouped subtask
-            if subtaskData.subtasks[testInd].group and testcaseResult.status != VerdictStatus.accept:
-                nRemain = len(subtaskData.subtasks[testInd].cases) - indTestNum - 1
+            if cur_subtask.group and testcaseResult.status != VerdictStatus.accept:
+                nRemain = len(cur_subtask.cases) - indTestNum - 1
                 result[testInd] += "S"*nRemain
                 print("S"*nRemain, end="", flush=True)
                 break
@@ -120,24 +125,24 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
             onUpdateRuningInCase(submission.id, testcaseNum)
 
-        # calculate score here
-        allCorrect = len(subtaskData.subtasks[testInd].cases)
-        if subtaskData.subtasks[testInd].group:
-            if correct != allCorrect:
-                correct = 0
-                percentSumScore = 0
+        # calculate score for each subtask here
+        allCorrect = len(cur_subtask.cases)
+        if cur_subtask.group:
+            if correct == allCorrect:
+                score += cur_subtask.score
+            else:
+                score += 0
+        else:
+            if cur_subtask.option == SubtaskOption.max:
+                score += max(percent_testcase_scores) * cur_subtask.score
+            elif cur_subtask.option == SubtaskOption.min:
+                score += min(percent_testcase_scores) * cur_subtask.score
+            else: # just sum
+                percentSumScore = sum(percent_testcase_scores)
+                score += percentSumScore / allCorrect * cur_subtask.score
+        mxScore += float(cur_subtask.score)        
 
-        isPass[testInd] = (correct == allCorrect)
-
-        realCorrect = correct
-        if isPartial:
-            realCorrect = percentSumScore
-
-        score += realCorrect * \
-            float(subtaskData.subtasks[testInd].score) / allCorrect
-        mxScore += float(subtaskData.subtasks[testInd].score)
-
-        if subtaskData.subtasks[testInd].group:
+        if cur_subtask.group:
             result[testInd] += "]"
             print("]", end="", flush=True)
         elif len(subtaskData.orderIndSubtask) != 1:

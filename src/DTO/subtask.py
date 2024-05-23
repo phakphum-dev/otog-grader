@@ -1,5 +1,12 @@
 from dataclasses import dataclass
 from typing import List
+from enum import Enum
+
+class SubtaskOption(Enum):
+    sum = "sum" # default
+
+    max = "max"
+    min = "min"
 
 
 @dataclass
@@ -9,6 +16,7 @@ class SubtaskDTO:
     score: float
     group: bool
     require: List[int]
+    option: SubtaskOption = SubtaskOption.sum
 
 
 @dataclass
