@@ -141,7 +141,7 @@ def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, err
     mainPayload = {
         "embeds": [
             {
-            "title": ":skull:ระบบของ Submission {submission.id} แตก!!!",
+            "title": f":skull:ระบบของ Submission {submission.id} แตก!!!",
             "description": f"ข้อที่ : `{submission.problemId}`\nผลตรวจ : `{result.result}`\nภาษา : `{submission.language}`\n:warning: ที่ระบบด่ากลับมา\n```\n{result.errmsg}\n```",
             "color": 15409955,
             "fields": [],
