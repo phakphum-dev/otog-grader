@@ -121,7 +121,7 @@ def startJudge(submission: SubmissionDTO,
             )
             onSubmitResult(submitResult)
             resultLoging(submission, submitResult)
-            writeTestcaseErrorLog(submission, f"Testcase {missingIn[0]}.sol is missing\n go ahead and flame the author.")
+            writeTestcaseErrorLog(submission, f"Testcase {missingSol[0]}.sol is missing\n go ahead and flame the author.")
             return
     else:
         # ? otherwise, just warn.
