@@ -122,8 +122,9 @@ def getJudgeType(problemId: int) -> JudgeType:
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
         return JudgeType.cppCheck
 
-    if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/thaco.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+    if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file() or Path(f"{PROBLEM_PATH}/partial.cpp").is_file():
+        judgeFile = "thaco.cpp" if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file() else "partial.cpp"
+        thisCmd = f"g++ {PROBLEM_PATH}/{judgeFile} -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):

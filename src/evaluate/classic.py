@@ -23,7 +23,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     printHeader("GRADER", f"use {evaData.judgeType.value} Judge...")
     printHeader("GRADER", f"Runtime process:")
 
-    print("\t-> Result: ", end="", flush=True)
+    print("\t-> Result (Unordered): ", end="", flush=True)
     isPass = [False for i in range(len(subtaskData.orderIndSubtask) + 5)]
     result = ["" for i in range(len(subtaskData.orderIndSubtask) + 5)]
     score = 0
@@ -49,7 +49,6 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
         correct = 0
         percent_testcase_scores = []
         isSkiped = False
-        isPartial = False
 
         # Check if it prerequisite when it it contest
         if (submission.contestId) and cur_subtask.require:
@@ -107,7 +106,6 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                     correct += 1
                     percent_testcase_scores.append(1)
                 elif testcaseResult.status == VerdictStatus.partial:
-                    isPartial = True
                     percent_testcase_scores.append(testcaseResult.percent)
                 else:
                     percent_testcase_scores.append(0)
@@ -140,7 +138,8 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             else: # just sum
                 percentSumScore = sum(percent_testcase_scores)
                 score += percentSumScore / allCorrect * cur_subtask.score
-        mxScore += float(cur_subtask.score)        
+        mxScore += float(cur_subtask.score)
+        isPass[testInd] = (correct == allCorrect)        
 
         if cur_subtask.group:
             result[testInd] += "]"
@@ -152,6 +151,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     print()
     finalResult = "".join(result)
     finalScore = round(score * submission.maxScore / mxScore)
+    print("\t-> Final Result: ", finalResult, flush=True)
 
     
     return ResultDTO(submission.id,
