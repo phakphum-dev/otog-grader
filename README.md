@@ -28,6 +28,12 @@ There are 3 main modules for otog
 2. [otog-backend](https://github.com/phakphum-dev/otog-backend)
 3. [otog-grader](https://github.com/phakphum-dev/otog-grader)
 
+## Documentation
+
+This is a documentation for admin otog to use this grader system effectively.
+
+[otog-wiki](https://github.com/phakphum-dev/otog-doc/wiki)
+
 ## Running Locally
 
 First, use `.env.template` to set your local environment, just copy and rename it to `.env`
