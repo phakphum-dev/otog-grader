@@ -30,6 +30,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     mxScore = 0
     sumTime = 0
     mxMem = None
+    caseCount = 1
 
     realTimeFactor = langCMD.get(
         submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
@@ -60,6 +61,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 allCrt = len(cur_subtask.cases)
                 correct = 0
                 percent_testcase_scores = [0]*allCrt
+                caseCount += allCrt
                 print("S"*allCrt, end="", flush=True)
                 result[testInd] += "S"*allCrt
                 isPass[testInd] = False
@@ -112,16 +114,18 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
                 result[testInd] += verdictSymbol(testcaseResult.status)
                 print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
+                caseCount += 1
 
             #? skip the other testcase when it isn't accept and grouped subtask
             if cur_subtask.group and testcaseResult.status != VerdictStatus.accept:
                 nRemain = len(cur_subtask.cases) - indTestNum - 1
                 result[testInd] += "S"*nRemain
                 print("S"*nRemain, end="", flush=True)
+                caseCount += nRemain
                 break
 
 
-            onUpdateRuningInCase(submission.id, testcaseNum)
+            onUpdateRuningInCase(submission.id, caseCount)
 
         # calculate score for each subtask here
         allCorrect = len(cur_subtask.cases)
