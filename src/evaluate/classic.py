@@ -13,6 +13,7 @@ from constants.verdict import verdictSymbol, verdictsColorSymbol
 from evaluate.verdict.main import excuteAndVerdict
 import errorLogging
 
+import traceback
 from message import *
 
 
@@ -84,20 +85,21 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 )
             except Exception as e:
                 errorStr = str(e)
+                fullErrorStr = traceback.format_exc()
                 print()
                 if errorStr[:7].lower() == "warning":
-                    printFail("WARNING", f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}")
+                    printFail("WARNING", f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}\n (See discord message for more infomation)")
                     result[testInd] += verdictSymbol(VerdictStatus.runtimeErr)
                     errorLogging.writeInternalWarningLog(submission, errorStr, VerdictStatus.runtimeErr, "Ignorable Judge or Problem Error")
                 elif errorStr.startswith("PROBLEM\n"):
                     errorStr = errorStr[8:]
-                    printFail("PROBLEM", f"Some thing wrong with {evaData.judgeType.value} judge\n\n{e}")
+                    printFail("PROBLEM", f"Something wrong with {evaData.judgeType.value} judge\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{e}")
+                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{fullErrorStr}")
                 else:
-                    printFail("INTERNAL", f"Some thing wrong in internal grading system or something...:(\n\n{errorStr}")
+                    printFail("INTERNAL", f"Something wrong in internal grading system or something...:(\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{errorStr}")
+                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}")
             else:
 
                 sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
