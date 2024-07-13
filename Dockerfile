@@ -21,7 +21,7 @@ WORKDIR /usr/src/app
 
 RUN apk add --update --no-cache python3 gcc g++
 
-RUN apk add --update --no-cache git make libcap-dev asciidoc
+RUN apk add --update --no-cache git make libcap-dev elogind-dev asciidoc
 
 RUN apk --no-cache add libpq   
 
