@@ -20,10 +20,12 @@ def main():
             DBDisconnect()
             time.sleep(1)
             continue
+        problemPath = f"./source/{queue.problemId}"
         subDTO = SubmissionDTO(
             id=queue.id,
             userId=queue.userId,
             problemId=queue.problemId,
+            problemPath=problemPath,
             contestId=queue.contestId,
             sourceCode=queue.sourceCode,
             language=queue.language,

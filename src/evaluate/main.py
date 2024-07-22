@@ -29,13 +29,13 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool
     else:
         evaMode = evaModeFromStr(submission.mode)
 
-    judgeType = getJudgeType(submission.problemId)
+    judgeType = getJudgeType(submission.problemPath)
     evaData = EvaluateData(submission, srcPath, evaMode, judgeType)
 
     # ? read substask first
-    if os.path.exists(f"./source/{evaData.submission.problemId}/subtask.json"):
+    if os.path.exists(f"{evaData.submission.problemPath}/subtask.json"):
         subContent = fileRead(
-            f"./source/{evaData.submission.problemId}/subtask.json")
+            f"{evaData.submission.problemPath}/subtask.json")
         printHeader("SUBTASK", f"Found custom subtask")
     else:
         subContent = evaData.submission.testcase

@@ -17,10 +17,12 @@ def main():
         if not task:
             time.sleep(1)
             continue
+        problemPath = f"./source/{task['problemId']}"
         subDTO = SubmissionDTO(
             id=task['id'],
             userId=task['userId'],
             problemId=task['problemId'],
+            problemPath=problemPath,
             contestId=task['contestId'],
             sourceCode=task['sourceCode'],
             language=task['language'],

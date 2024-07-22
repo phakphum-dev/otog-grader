@@ -177,16 +177,16 @@ def getRandomName(lenAl: int):
     return result
 
 
-def prepareEnv(problemId, isoPath):
+def prepareEnv(problemPath, isoPath):
 
     if isoPath != None:
         # Grab custom library
-        problemFile = os.listdir(f"./source/{problemId}")
+        problemFile = os.listdir(problemPath)
         for ffile in problemFile:
             if ffile.endswith(".c") or ffile.endswith(".h") \
                     or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
                     or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
-                os.system(f"cp ./source/{problemId}/{ffile} {isoPath}/")
+                os.system(f"cp {problemPath}/{ffile} {isoPath}/")
     else:
 
         # clear env
@@ -198,12 +198,12 @@ def prepareEnv(problemId, isoPath):
             os.system(f"rm env/{ffile}")
 
         # Grab custom library
-        problemFile = os.listdir(f"./source/{problemId}")
+        problemFile = os.listdir(problemPath)
         for ffile in problemFile:
             if ffile.endswith(".c") or ffile.endswith(".h") \
                     or (ffile.endswith(".cpp") and not ffile == "check.cpp") \
                     or (ffile.endswith(".py") and not ffile == "interactive_script.py"):
-                os.system(f"cp ./source/{problemId}/{ffile} ./env/")
+                os.system(f"cp {problemPath}/{ffile} ./env/")
 
 
 def createSourceCode(sourceCode, language, isoPath):
@@ -217,15 +217,15 @@ def createSourceCode(sourceCode, language, isoPath):
     return srcPath
 
 
-def create(userId, language, sourcePath, problemId, isoPath):
+def create(userId, language, sourcePath, problemPath, isoPath):
 
     commandData = None
     compilecmd = None
 
     # ? check problem's custom command.yaml
-    if os.path.exists(f"source/{problemId}/command.yaml"):
+    if os.path.exists(f"{problemPath}/command.yaml"):
         try:
-            with open(f"source/{problemId}/command.yaml", "r") as f:
+            with open(f"{problemPath}/command.yaml", "r") as f:
                 command = f.read()
             commandData = yaml.load(command, Loader=yaml.FullLoader)
         except:
@@ -246,7 +246,7 @@ def create(userId, language, sourcePath, problemId, isoPath):
     else:
         printHeader("COMPILE", f"use command from command.yaml")
     compilecmd = compilecmd.replace("[sourcePath]", sourcePath).replace(
-        "[problemPath]", f"source/{problemId}")
+        "[problemPath]", problemPath)
 
     if isoPath != None:
         compilecmd = compilecmd.replace("[binPath]", f"{isoPath}/out")
@@ -332,7 +332,7 @@ def getMissingSeqNumberFile(pathTo: str, extension: str, number: int):
 
     return result
 
-
+#! deprecated
 def getVerdict(problemId, userPath, solPath, testCase, srcPath, judgeType):
     PROBLEM_PATH = f"./source/{problemId}"
 

@@ -7,13 +7,12 @@ from constants.Enums import VerdictStatus
 from message import *
 
 
-def getVerdict(testCaseDto: TestcaseData):
-    PROBLEM_PATH = f"./source/{testCaseDto.problemId}"
-    if not Path(f"{PROBLEM_PATH}/binCheck").is_file():
+def getVerdict(testCaseDto: TestcaseData, problemPath: str):
+    if not Path(f"{problemPath}/binCheck").is_file():
         raise Exception("PROBLEM\nBinary file not found\n maybe check.cpp was compile error")
 
     os.system(f"cp {testCaseDto.userPath} ./output.txt")
-    thisCmd = f"{PROBLEM_PATH}/binCheck {testCaseDto.solPath} {PROBLEM_PATH}/{testCaseDto.testCase}.in {testCaseDto.srcPath}"
+    thisCmd = f"{problemPath}/binCheck {testCaseDto.solPath} {problemPath}/{testCaseDto.testCase}.in {testCaseDto.srcPath}"
     proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:

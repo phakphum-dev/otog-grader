@@ -74,7 +74,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             
             try:
                 testcaseResult = excuteAndVerdict(
-                    submission.problemId,
+                    submission.problemPath,
                     testcaseNum,
                     testTimeLimit,
                     (submission.memoryLimit) * 1024,

@@ -14,10 +14,10 @@ import time
 import signal
 
 
-def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, useControlGroup:bool = False):
+def excute(problemPath: str, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, useControlGroup:bool = False):
     if isoPath != None:  # ? Use isolate to execute
 
-        inputFile = f"< ../source/{problemId}/{testcase}.in"
+        inputFile = f"< ../{problemPath}/{testcase}.in"
         cmd = "cd env; "
         cmd += f"isolate {useControlGroup and '--cg' or ''} --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
         cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
@@ -81,7 +81,7 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
     else:
 
         ioFile = (
-            f"< ../source/{problemId}/{testcase}.in 1>output.txt 2>error.txt"
+            f"< ../{problemPath}/{testcase}.in 1>output.txt 2>error.txt"
         )
         cmd = f"cd env;ulimit -v {str(memoryLimit)}; {langCMD.get(language,'execute')}; exit;"
         cmd = cmd.replace("[ioRedirect]", ioFile)
@@ -108,23 +108,21 @@ def excute(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, la
         return t, timediff, -1
 
 
-def getJudgeType(problemId: int) -> JudgeType:
-    PROBLEM_PATH = f"./source/{problemId}"
-
-    if Path(f"{PROBLEM_PATH}/interactive_script.py").is_file():
+def getJudgeType(problemPath : str) -> JudgeType:
+    if Path(f"{problemPath}/interactive_script.py").is_file():
         return JudgeType.ogogi
 
-    if Path(f"{PROBLEM_PATH}/check.cpp").is_file():
-        thisCmd = f"g++ {PROBLEM_PATH}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+    if Path(f"{problemPath}/check.cpp").is_file():
+        thisCmd = f"g++ {problemPath}/check.cpp -O2 -std=c++17 -fomit-frame-pointer -o {problemPath}/binCheck"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # RIP
         return JudgeType.cppCheck
 
-    if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file() or Path(f"{PROBLEM_PATH}/partial.cpp").is_file():
-        judgeFile = "thaco.cpp" if Path(f"{PROBLEM_PATH}/thaco.cpp").is_file() else "partial.cpp"
-        thisCmd = f"g++ {PROBLEM_PATH}/{judgeFile} -O2 -std=c++17 -fomit-frame-pointer -o {PROBLEM_PATH}/binCheck"
+    if Path(f"{problemPath}/thaco.cpp").is_file() or Path(f"{problemPath}/partial.cpp").is_file():
+        judgeFile = "thaco.cpp" if Path(f"{problemPath}/thaco.cpp").is_file() else "partial.cpp"
+        thisCmd = f"g++ {problemPath}/{judgeFile} -O2 -std=c++17 -fomit-frame-pointer -o {problemPath}/binCheck"
         proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid)
         proc.communicate()
         if os.path.exists("/proc/" + str(proc.pid)):
@@ -134,33 +132,33 @@ def getJudgeType(problemId: int) -> JudgeType:
     return JudgeType.standard
 
 
-def checkAnswer(problemId: int, userPath: str, solPath: str, testCase: int, srcPath: str, judgeType: JudgeType):
-    testCaseDto = TestcaseData(problemId, userPath, solPath, testCase, srcPath)
+def checkAnswer(problemPath: str, userPath: str, solPath: str, testCase: int, srcPath: str, judgeType: JudgeType):
+    testCaseDto = TestcaseData(userPath, solPath, testCase, srcPath)
 
     if judgeType == JudgeType.cppCheck:
-        result = cppCheck.getVerdict(testCaseDto)
+        result = cppCheck.getVerdict(testCaseDto, problemPath)
     elif judgeType == JudgeType.ogogi:
-        result = ogogi.getVerdict(testCaseDto)
+        result = ogogi.getVerdict(testCaseDto, problemPath)
     elif judgeType == JudgeType.thaco:
-        result = thaco.getVerdict(testCaseDto)
+        result = thaco.getVerdict(testCaseDto, problemPath)
     else:  # ? use standard
         result = standard.getVerdict(testCaseDto)
 
     return result
 
 
-def excuteAndVerdict(problemId: int, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, judgeType: JudgeType) -> VerdictTestcase:
+def excuteAndVerdict(problemPath: str, testcase: int, timeLimit: float, memoryLimit: int, language: str, sourcePath: str, isoPath, judgeType: JudgeType) -> VerdictTestcase:
     exitCode, timeDiff, memUse = excute(
-        problemId, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath)
+        problemPath, testcase, timeLimit, memoryLimit, language, sourcePath, isoPath)
     errSymbol = error(exitCode)
 
     if not errSymbol:
         # ? if no error
         userOutputPath = "env/output.txt"
-        probOutputPath = f"./source/{problemId}/{testcase}.sol"
+        probOutputPath = f"{problemPath}/{testcase}.sol"
 
         verdictStatus, percentScore = checkAnswer(
-            problemId, userOutputPath, probOutputPath, testcase, sourcePath, judgeType)
+            problemPath, userOutputPath, probOutputPath, testcase, sourcePath, judgeType)
 
         return VerdictTestcase(verdictStatus, percentScore, timeDiff, memUse)
     elif errSymbol == "TLE":
