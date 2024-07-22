@@ -44,6 +44,15 @@ Second, run docker container
 docker compose -f docker-compose.prod.yml up -d
 ```
 
+## For Testing
+run docker container
+
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+
+_Note: This will test only the grader service_
+
 ## Bug Report
 
 If you have any issue, feel free to open a new one in the issue tab

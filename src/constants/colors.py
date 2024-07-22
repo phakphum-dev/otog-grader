@@ -1,5 +1,6 @@
 class colors:
     HEADER = "\033[95m"
+    TEST_HEADER = "\033[38;5;208m"
     OKBLUE = "\033[94m"
     OKCYAN = "\033[96m"
     OKGREEN = "\033[92m"
