@@ -1,0 +1,33 @@
+{
+    "version": 1.0,
+    "data": {
+        "subtask 1": {
+            "case": "1-5",
+            "group": false,
+            "score": 20
+        },
+        "subtask 2": {
+            "case": "6-9",
+            "group": true,
+            "score": 30
+        },
+        "subtask 3": {
+            "case": "10-12",
+            "group": true,
+            "score": 30,
+            "require": 1
+        },
+        "subtask 4": {
+            "case": "13-14",
+            "group": false,
+            "score": 40,
+            "require": 2
+        },
+        "subtask 5": {
+            "case": "15-16",
+            "group": false,
+            "score": 50,
+            "require": [3, 4]
+        }
+    }
+}
