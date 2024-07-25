@@ -217,6 +217,8 @@ if __name__ == "__main__":
     if any([not f.ignore for f in failedTests]):
         printFail("TEST", "Some tests failed!")
         for f in failedTests:
+            if f.ignore:
+                continue
             printFail(f"#{crt}", f.file)
             printFail("Message", f.message)
             print()
@@ -226,6 +228,8 @@ if __name__ == "__main__":
     if any([f.ignore for f in failedTests]):
         printWarning("TEST", "Some tests failed but can be ignored")
         for f in failedTests:
+            if not f.ignore:
+                continue
             printWarning(f"#{crt}", f.file)
             printWarning("Message", f.message)
             print()
