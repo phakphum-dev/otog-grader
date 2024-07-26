@@ -10,6 +10,9 @@ with open(outputPath, "r") as f:
 if num1 == 69: # This is the secret number
     print("NOICE")
 
+if num1 == 37:
+    while True:
+        print("")
 
 if num1 != num2:
     print("P")
