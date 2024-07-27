@@ -116,6 +116,7 @@ if __name__ == "__main__":
     thisTime = time.localtime(time.time())
 
     allTestSourceCodeProblems = [p for p in os.listdir(testCodeDir) if isdir(joinPath(testCodeDir, p)) and isInt(p)]
+    allTestSourceCodeProblems = sorted(allTestSourceCodeProblems)
     crt = 0
     failedTests = []
 

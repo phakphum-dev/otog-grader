@@ -1,14 +1,14 @@
 /*
 mode : classic
-expected : PPPPP
---         ^some how
-score : 100
-ignore : true
+expected : %%%%%
+--          ^ somehow
+score : 4
 */
 #include <iostream>
 
 int main() {
     int testcase;
     std::cin >> testcase;
-    std::cout << "2";
+    std::cout << "4.20";
+
 }

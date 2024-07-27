@@ -35,7 +35,7 @@ def getVerdict(testCaseDto: TestcaseData, problemPath: str):
     try:
         resultScore = float(resultScore.strip())
     except:
-        raise Exception("PROBLEM\nthaco.cpp return invalid score\nExpected float but got " + resultScore.strip())
+        raise Exception(f"PROBLEM\nthaco.cpp return invalid score\nExpected float but got {resultScore.strip()}")
 
     if abs(resultScore - 1.0) <= 1e-4:  # ? if very close to one
         return (VerdictStatus.accept, 1.0)
