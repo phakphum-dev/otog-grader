@@ -1,14 +1,18 @@
 from constants.colors import colors
 
 
-def bigPrint(header: str, text, color):
+def bigPrint(header: str, text, color, colorAll = False):
     lines = text.split("\n")
     for i, eachLine in enumerate(lines):
         if i == 0:  # ? print name only first line
             print(f"[ {color}{header.upper()}{colors.RESET} ]", end=" ")
         else:
             print(f"{' '*(len(header) + 4)}", end=" ")
-        print(f"{eachLine.strip()}")
+
+        if colorAll:
+            print(f"{color}{eachLine.strip()}{colors.RESET}")
+        else:
+            print(f"{eachLine.strip()}")
 
 
 def printBlod(header, text):

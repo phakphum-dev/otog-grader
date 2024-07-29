@@ -54,10 +54,12 @@ def testSubmit(crt, subName, proId, srcCode: str, testcase, lang="cpp", mem=256,
     
     nUser = crt * 100 + 69
     # If there is new payload
+    problemPath = f"./source/{proId}"
     submission = SubmissionDTO(
         nUser,
         nUser,
         proId,
+        problemPath,
         69,
         srcCode, lang, 100,
         timeLim * 1000, mem, testcase, "classic"

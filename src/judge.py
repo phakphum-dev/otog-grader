@@ -70,7 +70,7 @@ def startJudge(submission: SubmissionDTO,
         return
 
     # Check if testcases actually exist
-    if not Path(f"./source/{submission.problemId}").is_dir():
+    if not Path(submission.problemPath).is_dir():
         printFail("GRADER", "No testcase. Aborted.")
         submitResult = ResultDTO(
             id=submission.id,
@@ -87,7 +87,7 @@ def startJudge(submission: SubmissionDTO,
 
     # ? Check is .in are ready to use
     missingIn = getMissingSeqNumberFile(
-        f"./source/{submission.problemId}", "in", int(submission.testcase))
+        submission.problemPath, "in", int(submission.testcase))
     if missingIn:
         printFail("TESTCASE", f"Testcase {missingIn[0]}.in is missing")
         submitResult = ResultDTO(
@@ -104,7 +104,7 @@ def startJudge(submission: SubmissionDTO,
         return
 
     missingSol = getMissingSeqNumberFile(
-        f"./source/{submission.problemId}", "sol", int(submission.testcase))
+        submission.problemPath, "sol", int(submission.testcase))
     # ? to check .sol It depend on type of judge
     judgeType = getJudgeType(submission.problemId)
     if judgeType == JudgeType.standard:
@@ -150,7 +150,7 @@ def startJudge(submission: SubmissionDTO,
     if strToBool(osEnv.USE_ISOLATE):
         isolateEnvPath = initIsolate(isolateUseControlGroup)
 
-    prepareEnv(submission.problemId, isolateEnvPath)
+    prepareEnv(submission.problemPath, isolateEnvPath)
 
     # Write source string to file
     srcCodePath = createSourceCode(
@@ -158,7 +158,7 @@ def startJudge(submission: SubmissionDTO,
 
     # Compile
     err = create(submission.userId, submission.language,
-                 srcCodePath, submission.problemId, isolateEnvPath)
+                 srcCodePath, submission.problemPath, isolateEnvPath)
 
     # If compile error
     if err == "Compilation Error":

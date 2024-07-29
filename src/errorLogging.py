@@ -128,9 +128,9 @@ def getSubLinkContent(submission: SubmissionDTO):
 def getProblemFileStructure(submission: SubmissionDTO):
     fileStructureStr = f"{submission.problemId}/"
     filesStr = []
-    for path, subdirs, files in os.walk(f"./source/{submission.problemId}"):
+    for path, subdirs, files in os.walk(submission.problemPath):
         for name in files:
-            filesStr.append(os.path.join(path, name).removeprefix(f"./source/{submission.problemId}/"))
+            filesStr.append(os.path.join(path, name).removeprefix(f"{submission.problemPath}/"))
     filesStr = sorted(filesStr)
     fileStructureStr += "\n\t" + "\n\t".join(filesStr)
     return fileStructureStr
@@ -179,8 +179,8 @@ def getDiscordUserSubPayloads(submission: SubmissionDTO, result : ResultDTO, err
 
 def getDiscordTestcaseErrorPayloads(submission: SubmissionDTO, errMsg : str, isSubtaskError = False):
     subtaskStr = "ไม่มีง่ะ"
-    if os.path.exists(f"./source/{submission.problemId}/subtask.json"):
-        with open(f"./source/{submission.problemId}/subtask.json", "r") as f:
+    if os.path.exists(f"{submission.problemPath}/subtask.json"):
+        with open(f"{submission.problemPath}/subtask.json", "r") as f:
             subtaskStr = f.read().strip()
     
     if len(subtaskStr) > 1000:

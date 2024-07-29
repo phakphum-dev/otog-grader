@@ -14,7 +14,7 @@ services:
       - otog-network
     env_file:
       - .env
-    command: python -u src/Test.py
+    command: python3 -u src/mainTest.py
 
 networks:
   otog-network:

@@ -6,9 +6,8 @@ import os
 import signal
 
 
-def getVerdict(testCaseDto: TestcaseData):
-    PROBLEM_PATH = f"./source/{testCaseDto.problemId}"
-    thisCmd = f"python3 {PROBLEM_PATH}/interactive_script.py {testCaseDto.userPath} {PROBLEM_PATH}/ {testCaseDto.testCase}"
+def getVerdict(testCaseDto: TestcaseData, problemPath: str):
+    thisCmd = f"python3 {problemPath}/interactive_script.py {testCaseDto.userPath} {problemPath}/ {testCaseDto.testCase}"
     proc = subprocess.Popen([thisCmd], shell=True, preexec_fn=os.setsid,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     

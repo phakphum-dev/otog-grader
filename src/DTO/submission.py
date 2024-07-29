@@ -6,6 +6,7 @@ class SubmissionDTO:
     id: int
     userId: int
     problemId: int
+    problemPath: str
     contestId: int
     sourceCode: str
     language: str
