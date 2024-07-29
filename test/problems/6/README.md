@@ -4,7 +4,7 @@
 
 Test for Custom verdict...er 
 
-This will test for `thaco.cpp` (start from thaco contest)
+This will test for `partial.cpp` (That's work the same as `thaco.cpp`)
 
 ## Problem task
 
