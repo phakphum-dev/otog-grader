@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import List
+from DTO.groupResult import GroupResult
 
 
 @dataclass
@@ -9,3 +11,4 @@ class ResultDTO:
     sumTime: int
     memUse: int
     errmsg: str
+    # fullResult: List[GroupResult]

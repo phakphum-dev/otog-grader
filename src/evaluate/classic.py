@@ -1,7 +1,10 @@
 import os
+import json
 
 from DTO.evaluate import EvaluateData
 from DTO.result import ResultDTO
+from DTO.groupResult import GroupResult
+from DTO.verdictTestcase import VerdictTestcase
 from DTO.subtask import ProblemTaskDTO, SubtaskDTO, SubtaskOption
 from handle import error
 from checkType import *
@@ -29,9 +32,10 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     result = ["" for i in range(len(subtaskData.orderIndSubtask) + 5)]
     score = 0
     mxScore = 0
-    sumTime = 0
+    mxTime = 0
     mxMem = None
     caseCount = 1
+    fullResult = [GroupResult(0, subtask.score, []) for subtask in subtaskData.subtasks]
 
     realTimeFactor = langCMD.get(
         submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
@@ -65,6 +69,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 caseCount += allCrt
                 print("S"*allCrt, end="", flush=True)
                 result[testInd] += "S"*allCrt
+                fullResult[testInd].verdicts += [VerdictTestcase(VerdictStatus.skip, 0, 0, 0)]*allCrt
                 isPass[testInd] = False
 
         for indTestNum, testcaseNum in enumerate(cur_subtask.cases):
@@ -90,6 +95,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                 if errorStr[:7].lower() == "warning":
                     printFail("WARNING", f"Something wrong but will treat as RUNTIME ERROR\n\n{errorStr}\n (See discord message for more infomation)")
                     result[testInd] += verdictSymbol(VerdictStatus.runtimeErr)
+                    fullResult[testInd].verdicts += [VerdictTestcase(VerdictStatus.runtimeErr, 0, 0, 0)]
                     errorLogging.writeInternalWarningLog(submission, errorStr, VerdictStatus.runtimeErr, "Ignorable Judge or Problem Error")
                 elif errorStr.startswith("PROBLEM\n"):
                     errorStr = errorStr[8:]
@@ -102,8 +108,11 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                              "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}")
             else:
 
-                sumTime += testcaseResult.timeUse * 1000 // realTimeFactor
-                if testcaseResult.memUse != -1:
+                resultTime = testcaseResult.timeUse * 1000 // realTimeFactor
+                resultMem = testcaseResult.memUse
+
+                mxTime = max(mxTime, resultTime)
+                if resultMem != -1:
                     mxMem = max(mxMem or 0, testcaseResult.memUse)
 
                 if testcaseResult.status == VerdictStatus.accept:
@@ -115,6 +124,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                     percent_testcase_scores.append(0)
 
                 result[testInd] += verdictSymbol(testcaseResult.status)
+                fullResult[testInd].verdicts += [testcaseResult]
                 print(verdictsColorSymbol(testcaseResult.status), end="", flush=True)
                 caseCount += 1
 
@@ -122,6 +132,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
             if cur_subtask.group and testcaseResult.status != VerdictStatus.accept:
                 nRemain = len(cur_subtask.cases) - indTestNum - 1
                 result[testInd] += "S"*nRemain
+                fullResult[testInd].verdicts += [VerdictTestcase(VerdictStatus.skip, 0, 0, 0)]*nRemain
                 print("S"*nRemain, end="", flush=True)
                 caseCount += nRemain
                 break
@@ -131,19 +142,22 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
         # calculate score for each subtask here
         allCorrect = len(cur_subtask.cases)
+        groupScore = 0
         if cur_subtask.group:
             if correct == allCorrect:
-                score += cur_subtask.score
+                groupScore = cur_subtask.score
             else:
-                score += 0
+                groupScore = 0
         else:
             if cur_subtask.option == SubtaskOption.max:
-                score += max(percent_testcase_scores) * cur_subtask.score
+                groupScore = max(percent_testcase_scores) * cur_subtask.score
             elif cur_subtask.option == SubtaskOption.min:
-                score += min(percent_testcase_scores) * cur_subtask.score
+                groupScore = min(percent_testcase_scores) * cur_subtask.score
             else: # just sum
                 percentSumScore = sum(percent_testcase_scores)
-                score += percentSumScore / allCorrect * cur_subtask.score
+                groupScore = percentSumScore / allCorrect * cur_subtask.score
+        score += groupScore
+        fullResult[testInd].score = groupScore
         mxScore += float(cur_subtask.score)
         isPass[testInd] = (correct == allCorrect)        
 
@@ -159,6 +173,14 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     finalScore = round(score * submission.maxScore / mxScore)
     print("\t-> Final Result: ", finalResult, flush=True)
 
+    print(f"\t-> Full Result (JSON):")
+    groupIndex = 0
+    for  groupResult in fullResult:
+        groupIndex += 1
+        print(f"\t\tGroup #{groupIndex}: {groupResult.score}/{groupResult.fullScore}")
+        for verdict in groupResult.verdicts:
+            print(f"\t\t\tStatus: {verdict.status.value}, Percent: {verdict.percent}, Time Used: {verdict.timeUse} s, Mem Used: {verdict.memUse} kb")
+
     
     return ResultDTO(submission.id,
-                     finalResult, finalScore, sumTime, mxMem, None)
+                     finalResult, finalScore, mxTime, mxMem, None)
