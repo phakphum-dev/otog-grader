@@ -1,9 +1,7 @@
 import os
-import json
 
 from DTO.evaluate import EvaluateData
-from DTO.result import ResultDTO
-from DTO.groupResult import GroupResult
+from DTO.result import ResultDTO, GroupResult
 from DTO.verdictTestcase import VerdictTestcase
 from DTO.subtask import ProblemTaskDTO, SubtaskDTO, SubtaskOption
 from handle import error
@@ -173,7 +171,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     finalScore = round(score * submission.maxScore / mxScore)
     print("\t-> Final Result: ", finalResult, flush=True)
 
-    print(f"\t-> Full Result (JSON):")
+    print(f"\t-> Full Result:")
     groupIndex = 0
     for  groupResult in fullResult:
         groupIndex += 1

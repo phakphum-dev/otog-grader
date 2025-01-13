@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from typing import List
-from DTO.groupResult import GroupResult
+from DTO.verdictTestcase import VerdictTestcase
+
+
+@dataclass
+class GroupResult:
+    score: float
+    fullScore: float
+    verdicts: List[VerdictTestcase]
 
 
 @dataclass
