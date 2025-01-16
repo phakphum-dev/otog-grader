@@ -44,7 +44,7 @@ def start(submission: SubmissionDTO, srcPath: str, isoPath, useControlGroup:bool
         problemTaskData = subtask.compile(subContent)
     except Exception as e:
         errorLogging.writeSubtaskErrorLog(submission, str(e))
-        return ResultDTO(evaData.submission.id, "Subtask Error", 0, 0, 0, str(e))
+        return ResultDTO(evaData.submission.id, "Subtask Error", 0, 0, 0, str(e), [])
 
     # ? start evaluate
     if evaMode == EvaluateMode.codeforces:

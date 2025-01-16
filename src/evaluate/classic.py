@@ -17,6 +17,8 @@ import errorLogging
 import traceback
 from message import *
 
+import json
+
 
 def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRuningInCase: str, subtaskData: ProblemTaskDTO) -> ResultDTO:
 
@@ -99,11 +101,11 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                     errorStr = errorStr[8:]
                     printFail("PROBLEM", f"Something wrong with {evaData.judgeType.value} judge\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{fullErrorStr}")
+                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{fullErrorStr}", [])
                 else:
                     printFail("INTERNAL", f"Something wrong in internal grading system or something...:(\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}")
+                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}", [])
             else:
 
                 resultTime = testcaseResult.timeUse * 1000 // realTimeFactor
@@ -181,4 +183,4 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
 
     
     return ResultDTO(submission.id,
-                     finalResult, finalScore, mxTime, mxMem, None)
+                     finalResult, finalScore, mxTime, mxMem, None, fullResult)

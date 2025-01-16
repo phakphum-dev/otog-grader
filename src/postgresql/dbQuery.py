@@ -4,6 +4,7 @@ from constants.colors import colors
 from .dbInit import DB
 from datetime import datetime
 import traceback
+import json
 
 db = DB()
 
@@ -79,12 +80,13 @@ def updateRunningInCase(resultId, case):
 def updateResult(result: ResultDTO):
     # TODO : Imprement memUse in DB
     currentDate = datetime.now()
-    sql = """UPDATE submission SET result = %s, score = %s, "timeUsed" = %s, 
-            status = %s, errmsg = %s, "updateDate" = %s WHERE id = %s"""
+    sql = """UPDATE submission SET result = %s, score = %s, "timeUsed" = %s, "memUsed" = %s,
+            status = %s, errmsg = %s, "fullResult" = %s, "updateDate" = %s WHERE id = %s"""
     status = "accept" if all(
         c in "P[]()" for c in result.result) or result.result == "Accepted" else "reject"
-    val = (result.result, result.score, int(result.sumTime), status,
-           result.errmsg, currentDate, str(result.id))
+    val = (result.result, result.score, result.sumTime, result.memUse, status,
+           result.errmsg, str(json.dumps([groupResult.to_dict() for groupResult in result.fullResult])),
+           currentDate, str(result.id))
     cur = db.query(sql, val)
     cur.close()
     db.update()
