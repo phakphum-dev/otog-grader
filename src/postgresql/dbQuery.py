@@ -82,9 +82,7 @@ def updateResult(result: ResultDTO):
     currentDate = datetime.now()
     sql = """UPDATE submission SET result = %s, score = %s, "timeUsed" = %s, "memUsed" = %s,
             status = %s, errmsg = %s, "fullResult" = %s, "updateDate" = %s WHERE id = %s"""
-    status = "accept" if all(
-        c in "P[]()" for c in result.result) or result.result == "Accepted" else "reject"
-    val = (result.result, result.score, result.sumTime, result.memUse, status,
+    val = (result.result, result.score, result.sumTime, result.memUse, result.status.value,
            result.errmsg, str(json.dumps([groupResult.to_dict() for groupResult in result.fullResult])),
            currentDate, str(result.id))
     cur = db.query(sql, val)

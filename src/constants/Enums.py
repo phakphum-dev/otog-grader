@@ -26,3 +26,11 @@ class VerdictStatus(Enum):
 
     problemErr = "problem error"
     internalErr = "internal error"
+
+class SubmissionStatus(Enum):
+    accept = "accept"
+    reject = "reject"
+    waiting = "waiting"
+    grading = "grading"
+    compileError = "compileError"
+    judgeError = "judgeError"

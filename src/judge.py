@@ -63,6 +63,7 @@ def startJudge(submission: SubmissionDTO,
             sumTime=0,
             memUse=0,
             errmsg="Number of testcase does not specified. Flame admins, kiddos. :(",
+            status=SubmissionStatus.judgeError,
             fullResult=[]
         )
         onSubmitResult(submitResult)
@@ -80,6 +81,7 @@ def startJudge(submission: SubmissionDTO,
             sumTime=0,
             memUse=0,
             errmsg="Admins have not yet upload the testcases. Go ahead and flame them.",
+            status=SubmissionStatus.judgeError,
             fullResult=[]
         )
         onSubmitResult(submitResult)
@@ -99,6 +101,7 @@ def startJudge(submission: SubmissionDTO,
             sumTime=0,
             memUse=0,
             errmsg="Admins have not yet upload the testcases. Go ahead and flame them.",
+            status=SubmissionStatus.judgeError,
             fullResult=[]
         )
         onSubmitResult(submitResult)
@@ -121,6 +124,7 @@ def startJudge(submission: SubmissionDTO,
                 sumTime=0,
                 memUse=0,
                 errmsg="Admins have not yet upload the testcases. Go ahead and flame them.",
+                status=SubmissionStatus.judgeError,
                 fullResult=[]
             )
             onSubmitResult(submitResult)
@@ -189,6 +193,7 @@ def startJudge(submission: SubmissionDTO,
             sumTime=0,
             memUse=0,
             errmsg=errmsg,
+            status=SubmissionStatus.compileError,
             fullResult=[]
         )
         onSubmitResult(submitResult)
@@ -203,6 +208,7 @@ def startJudge(submission: SubmissionDTO,
             sumTime=0,
             memUse=0,
             errmsg="Compilation Time Limit Exceeded",
+            status=SubmissionStatus.compileError,
             fullResult=[]
         )
         onSubmitResult(submitResult)
