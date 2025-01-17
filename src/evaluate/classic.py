@@ -183,7 +183,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
         for verdict in groupResult.verdicts:
             print(f"\t\t\tStatus: {verdict.status.value}, Percent: {verdict.percent}, Time Used: {verdict.timeUse} s, Mem Used: {verdict.memUse} kb")
 
-    status = SubmissionStatus.accept if all(c in "P[]()" for c in result.result) else SubmissionStatus.reject
+    status = SubmissionStatus.accept if all(c in "P[]()" for c in result) else SubmissionStatus.reject
 
     return ResultDTO(submission.id,
                      finalResult, finalScore, mxTime, mxMem, None, status, fullResult)
