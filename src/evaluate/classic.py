@@ -8,7 +8,7 @@ from handle import error
 from checkType import *
 import cmdManager as langCMD
 from constants.osDotEnv import *
-from constants.Enums import VerdictStatus
+from constants.Enums import VerdictStatus, SubmissionStatus
 from constants.verdict import verdictSymbol, verdictsColorSymbol
 
 from evaluate.verdict.main import excuteAndVerdict
@@ -101,18 +101,19 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
                     errorStr = errorStr[8:]
                     printFail("PROBLEM", f"Something wrong with {evaData.judgeType.value} judge\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{fullErrorStr}", [])
+                                "Problem Error", 0, 0, 0, f"It's the problem author's fault!\nGO BLAME THEM\n\n\n{evaData.judgeType.value} was explode during evaluate\n\n{fullErrorStr}",
+                                SubmissionStatus.judgeError, [])
                 else:
                     printFail("INTERNAL", f"Something wrong in internal grading system or something...:(\n\n{errorStr}\n (See discord message for more infomation)")
                     return ResultDTO(submission.id,
-                             "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}", [])
+                                "Judge Error", 0, 0, 0, f"Something wrong in internal grading system...\nPlease contact admin AI.Tor!!\n\n{fullErrorStr}",
+                                SubmissionStatus.judgeError, [])
             else:
 
-                resultTime = testcaseResult.timeUse * 1000 // realTimeFactor
-                resultMem = testcaseResult.memUse
+                testcaseResult.timeUse = testcaseResult.timeUse * 1000 // realTimeFactor
 
-                mxTime = max(mxTime, resultTime)
-                if resultMem != -1:
+                mxTime = max(mxTime, testcaseResult.timeUse)
+                if testcaseResult.memUse != -1:
                     mxMem = max(mxMem or 0, testcaseResult.memUse)
 
                 if testcaseResult.status == VerdictStatus.accept:
@@ -179,8 +180,9 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
         groupIndex += 1
         print(f"\t\tGroup #{groupIndex}: {groupResult.score}/{groupResult.fullScore}")
         for verdict in groupResult.verdicts:
-            print(f"\t\t\tStatus: {verdict.status.value}, Percent: {verdict.percent}, Time Used: {verdict.timeUse} s, Mem Used: {verdict.memUse} kb")
+            print(f"\t\t\tStatus: {verdict.status.value}, Percent: {verdict.percent}, Time Used: {verdict.timeUse} ms, Mem Used: {verdict.memUse} kb")
 
+    status = SubmissionStatus.accept if all(c in "P[]()" for c in finalResult) else SubmissionStatus.reject
     
     return ResultDTO(submission.id,
-                     finalResult, finalScore, mxTime, mxMem, None, fullResult)
+                     finalResult, finalScore, mxTime, mxMem, None, status, fullResult)
