@@ -10,13 +10,6 @@ class GroupResult:
     fullScore: float
     verdicts: List[VerdictTestcase]
 
-    def to_dict(self):
-        return {
-            "score": self.score,
-            "fullScore": self.fullScore,
-            "verdicts": [verdict.to_dict() for verdict in self.verdicts]
-        }
-
 
 @dataclass
 class ResultDTO:
