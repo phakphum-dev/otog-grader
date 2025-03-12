@@ -17,7 +17,9 @@ from datetime import datetime
 
 def startJudge(submission: SubmissionDTO,
                onSubmitResult: Callable[[ResultDTO], None],
-               onUpdateRuningInCase: Callable[[int, int], None]):
+               onUpdateRuningInCase: Callable[[int, int], None],
+               onUpdateContestResult: Callable[[SubmissionDTO, ResultDTO], None]
+               ):
     """
     Start judge is a BIG function that will judge and evaluate participant code
     Attributes
@@ -67,6 +69,8 @@ def startJudge(submission: SubmissionDTO,
             fullResult=[]
         )
         onSubmitResult(submitResult)
+        if (submission.contestId):
+            onUpdateContestResult(submission, submitResult)
         resultLoging(submission, submitResult)
         writeTestcaseErrorLog(submission, "Number of testcase does not specified. Flame Problem author, kiddos. :(")
         return
@@ -85,6 +89,8 @@ def startJudge(submission: SubmissionDTO,
             fullResult=[]
         )
         onSubmitResult(submitResult)
+        if (submission.contestId):
+            onUpdateContestResult(submission, submitResult)
         resultLoging(submission, submitResult)
         writeTestcaseErrorLog(submission, f"Author have not yet upload the testcases. Go ahead and flame them.")
         return
@@ -105,6 +111,8 @@ def startJudge(submission: SubmissionDTO,
             fullResult=[]
         )
         onSubmitResult(submitResult)
+        if (submission.contestId):
+            onUpdateContestResult(submission, submitResult)
         resultLoging(submission, submitResult)
         writeTestcaseErrorLog(submission, f"Testcase {missingIn[0]}.in is missing\n go ahead and flame the author.")
         return
@@ -128,6 +136,8 @@ def startJudge(submission: SubmissionDTO,
                 fullResult=[]
             )
             onSubmitResult(submitResult)
+            if (submission.contestId):
+                onUpdateContestResult(submission, submitResult)
             resultLoging(submission, submitResult)
             writeTestcaseErrorLog(submission, f"Testcase {missingSol[0]}.sol is missing\n go ahead and flame the author.")
             return
@@ -197,6 +207,8 @@ def startJudge(submission: SubmissionDTO,
             fullResult=[]
         )
         onSubmitResult(submitResult)
+        if (submission.contestId):
+            onUpdateContestResult(submission, submitResult)
         resultLoging(submission, submitResult)
         return
     elif err == "Compilation TLE":
@@ -212,6 +224,8 @@ def startJudge(submission: SubmissionDTO,
             fullResult=[]
         )
         onSubmitResult(submitResult)
+        if (submission.contestId):
+            onUpdateContestResult(submission, submitResult)
         resultLoging(submission, submitResult)
         return
 
@@ -220,6 +234,8 @@ def startJudge(submission: SubmissionDTO,
 
     print()
     onSubmitResult(submitResult)
+    if (submission.contestId):
+        onUpdateContestResult(submission, submitResult)
     resultLoging(submission, submitResult)
 
     if not err:

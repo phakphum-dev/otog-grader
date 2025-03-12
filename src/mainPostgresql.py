@@ -1,5 +1,5 @@
 import judge
-from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase
+from postgresql.dbQuery import DBConnect, DBDisconnect, getQueue, testDBConnection, updateResult, updateRunningInCase, updateContestScore
 from handle import testEnv
 from message import *
 import time
@@ -35,7 +35,7 @@ def main():
             testcase=queue.case,
             mode="classic"
         )
-        judge.startJudge(subDTO, updateResult, updateRunningInCase)
+        judge.startJudge(subDTO, updateResult, updateRunningInCase, updateContestScore)
         printOKCyan(
             "GRADER", "Grading session completed.\n\t-> Waiting for new submission.")
         DBDisconnect()
