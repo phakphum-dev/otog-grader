@@ -198,15 +198,12 @@ def updateContestScore(submission: SubmissionDTO, result: ResultDTO):
             lastSubmissionId = history.submissionId
             updateHistory(sql, val, history, score)
 
-    sql += ["""UPDATE "contestScore" SET score = %s WHERE id = %s"""]
-    val += [score, contestScore.id]
-    
-    if lastSubmissionId != submission.id:
+    if lastSubmissionId != -1:
         sql += ["""UPDATE "contestScore" CS 
                 SET score = %s, "latestSubmission" = S."creationDate" 
                 FROM submission S 
                 WHERE CS.id = %s AND S.id = %s"""]
-        val += [score, contestScore.id, submission.id]
+        val += [score, contestScore.id, lastSubmissionId]
 
     cur = db.query(";".join(sql), tuple(val))
     cur.close()
