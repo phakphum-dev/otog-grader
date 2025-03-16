@@ -2,6 +2,7 @@ import time
 from DTO.result import ResultDTO
 from DTO.submission import SubmissionDTO
 from DTO.contest import ContestMode, ContestScoreDTO, ContestScoreHistoryDTO
+from constants.Enums import SubmissionStatus
 from constants.colors import colors
 from .dbInit import DB
 from datetime import datetime
@@ -159,6 +160,9 @@ def updateHistory(sql, val, history: ContestScoreHistoryDTO, score):
 
 
 def updateContestScore(submission: SubmissionDTO, result: ResultDTO):
+    if result.status != SubmissionStatus.accept and result.status != SubmissionStatus.reject:
+        return
+    
     db.update()
     contestId = submission.contestId
     userId = submission.userId
