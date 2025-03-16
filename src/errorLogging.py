@@ -61,11 +61,16 @@ def discordSendMsg(payload, channel = channel):
     url = f"https://discord.com/api/channels/{channel}/messages"
 
     # Send the API request to send the message
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+    except Exception as e:
+        printFail("DISCORD", f"Fail to send message to discord\n{e}")
+        return -1
 
     # Check if the request was successful
     if response.status_code < 200 or response.status_code >= 300:
         printFail("DISCORD", f"Fail to send message to discord\nresponse code : {response.status_code}\n{response.text}")
+        return -1
     else:
         return response.json()
 
@@ -78,11 +83,16 @@ def discordCreateThread(idMsg, name):
     url = f"https://discord.com/api/channels/{channel}/messages/{idMsg}/threads"
 
     # Send the API request to send the message
-    response = requests.post(url, headers=headers, data=json.dumps({"name": name,}))
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps({"name": name}))
+    except Exception as e:
+        printFail("DISCORD", f"Fail to create thread\n{e}")
+        return -1
 
     # Check if the request was successful
     if response.status_code < 200 or response.status_code >= 300:
         printFail("DISCORD", f"Fail to create thread\nresponse code : {response.status_code}\n{response.text}")
+        return -1
     else:
         return response.json()
 
@@ -274,7 +284,10 @@ def writeInternalErrorLog(submission: SubmissionDTO, result : ResultDTO, errorCo
     #? send to discord
     if isDiscordErrorSend:
         mainPayload, detailPayload = getDiscordUserSubPayloads(submission, result, errorCode)
-        cId = discordSendMsg(mainPayload)["id"]
+        msg = discordSendMsg(mainPayload)
+        if msg == -1:
+            return
+        cId = msg["id"]
         discordCreateThread(cId, f"Grader ระเบิด!! ({submission.id})")
         discordSendMsg(detailPayload, cId)
 
@@ -309,7 +322,10 @@ def writeSubtaskErrorLog(submission: SubmissionDTO, errMsg : str):
     #? send to discord to notify problem author
     if isDiscordErrorSend:
         mainPayload, detailPayload = getDiscordTestcaseErrorPayloads(submission, errMsg, True)
-        cId = discordSendMsg(mainPayload)["id"]
+        msg = discordSendMsg(mainPayload)
+        if msg == -1:
+            return
+        cId = msg["id"]
         discordCreateThread(cId, f"Subtask ระเบิด!! ({submission.id})")
         discordSendMsg(detailPayload, cId)
 
@@ -317,6 +333,9 @@ def writeTestcaseErrorLog(submission: SubmissionDTO, errMsg : str):
     #? send to discord to notify problem author
     if isDiscordErrorSend:
         mainPayload, detailPayload = getDiscordTestcaseErrorPayloads(submission, errMsg, False)
-        cId = discordSendMsg(mainPayload)["id"]
+        msg = discordSendMsg(mainPayload)
+        if msg == -1:
+            return
+        cId = msg["id"]
         discordCreateThread(cId, f"โจทย์ ระเบิด!! ({submission.id})")
         discordSendMsg(detailPayload, cId)
