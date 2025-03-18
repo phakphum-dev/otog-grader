@@ -33,7 +33,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     score = 0
     mxScore = 0
     mxTime = 0
-    mxMem = None
+    mxMem = -1 # mean this subbmission come from old excute system (not Isolate)
     caseCount = 1
     fullResult = [GroupResult(0, subtask.score, []) for subtask in subtaskData.subtasks]
 

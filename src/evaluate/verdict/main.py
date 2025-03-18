@@ -21,6 +21,7 @@ def excute(problemPath: str, testcase: int, timeLimit: float, memoryLimit: int, 
         cmd = "cd env; "
         cmd += f"isolate {useControlGroup and '--cg' or ''} --meta=isoResult.txt --stdout=output.txt --stderr=error.txt "
         cmd += f"--time={timeLimit / 1000} --mem={memoryLimit} "
+        cmd += f"--wall-time={(2 * timeLimit / 1000) + 1} "
 
         cmd += f"--run -- {langCMD.get(language,'execute')} "
         cmd += f"{inputFile} ; exit"
@@ -35,7 +36,7 @@ def excute(problemPath: str, testcase: int, timeLimit: float, memoryLimit: int, 
             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         try:
-            proc.communicate(timeout=(timeLimit / 1000) + 2)
+            proc.communicate(timeout=(2 * timeLimit / 1000) + 3)
         except subprocess.TimeoutExpired:
             if os.path.exists("/proc/" + str(proc.pid)):
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)

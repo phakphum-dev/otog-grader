@@ -25,7 +25,7 @@ def evaluate(evaData: EvaluateData, isoPath: str, useControlGroup, onUpdateRunin
     print("\t-> Result: ", end="", flush=True)
     result = "Accepted"
     resultTime = 0
-    resultMem = 0
+    resultMem = -1
 
     realTimeFactor = langCMD.get(
         submission.language, "timeFactor") * float(osEnv.GRADER_TIME_FACTOR)
