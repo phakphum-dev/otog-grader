@@ -209,8 +209,9 @@ def updateContestScore(submission: SubmissionDTO, result: ResultDTO):
                 WHERE CS.id = %s AND S.id = %s"""]
         val += [score, contestScore.id, lastSubmissionId]
 
-    cur = db.query(";".join(sql), tuple(val))
-    cur.close()
+    if len(sql) > 0:
+        cur = db.query(";".join(sql), tuple(val))
+        cur.close()
 
     db.update()
 
@@ -250,6 +251,7 @@ def updateResult(result: ResultDTO):
             sql += ["""INSERT INTO verdict ("subtaskId", "testcaseIndex", status, percent, "timeUsed", "memUsed")
                     VALUES (%s, %s, %s, %s, %s, %s)"""]
             val += [subtaskResultId, testcaseIndex, verdict.status.value, verdict.percent, verdict.timeUse, verdict.memUse]
-        cur = db.query(";".join(sql), tuple(val))
-        cur.close()
+        if len(sql) > 0:
+            cur = db.query(";".join(sql), tuple(val))
+            cur.close()
     db.update()
