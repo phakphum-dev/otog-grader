@@ -6,6 +6,7 @@ services:
     image: otog-grader:latest
     container_name: otog-grader
     privileged: true
+    restart: unless-stopped
     volumes:
       - ./source:/usr/src/app/source:rw
       - ./Logging:/usr/src/app/Logging:rw
