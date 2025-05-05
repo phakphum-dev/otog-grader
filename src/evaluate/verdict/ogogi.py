@@ -18,7 +18,7 @@ def getVerdict(testCaseDto: TestcaseData, problemPath: str):
     
     t = proc.returncode
     if t != 0:
-        raise Exception("PROBLEM\ninteractive_script.py return non-zero value")
+        raise Exception(f"PROBLEM\ninteractive_script.py return non-zero value (return code: {t})")
 
     if os.path.exists("/proc/" + str(proc.pid)):
         # RIP

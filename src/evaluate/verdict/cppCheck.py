@@ -26,7 +26,7 @@ def getVerdict(testCaseDto: TestcaseData, problemPath: str):
     t = proc.returncode
 
     if t != 0:
-        raise Exception("PROBLEM\ncheck.cpp return non-zero value")
+        raise Exception(f"PROBLEM\ncheck.cpp return non-zero value (return code: {t})")
 
     # ? check is grading result file exist
     if not Path("./grader_result.txt").is_file():

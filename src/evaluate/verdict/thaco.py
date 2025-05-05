@@ -30,7 +30,7 @@ def getVerdict(testCaseDto: TestcaseData, problemPath: str):
     t = proc.returncode
 
     if t != 0:
-        raise Exception("PROBLEM\nthaco.cpp return non-zero value")
+        raise Exception(f"PROBLEM\nthaco.cpp return non-zero value (return code: {t})")
 
     try:
         resultScore = float(resultScore.strip())
