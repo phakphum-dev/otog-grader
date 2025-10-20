@@ -11,6 +11,9 @@ from handle import *
 import judge
 
 lastResult = None
+def updateContestScore(sub : SubmissionDTO, res : ResultDTO):
+    pass
+
 def updateResult(result: ResultDTO):
     global lastResult
     lastResult = result
@@ -45,7 +48,7 @@ def testSubmit(crt, problemPath, proId, srcCode: str, testcase, mode, lang="cpp"
         srcCode, lang, 100,
         timeLim * 1000, mem, testcase, mode
     )
-    judge.startJudge(submission, updateResult, runCase)
+    judge.startJudge(submission, updateResult, runCase, updateContestScore)
 
 def printTest(header, text):
     bigPrint(header, text, colors.TEST_HEADER)
