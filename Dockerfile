@@ -1,8 +1,9 @@
-FROM alpine:3.15 as build
+FROM python:3.10.19-alpine3.22 as build
 
 WORKDIR /usr/src/app
 
-RUN apk add --update --no-cache python3
+RUN apk add --update --no-cache
+# RUN rm /usr/lib/python*/EXTERNALLY-MANAGED
 RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
 
@@ -12,20 +13,23 @@ ENV PATH="/usr/src/app/venv/bin:$PATH"
 
 COPY requirements.txt .
 
-RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
+RUN apk update && apk add postgresql-dev gcc musl-dev
 RUN pip3 install --requirement requirements.txt
 
-FROM alpine:3.15
+FROM python:3.10.19-alpine3.22
 
 WORKDIR /usr/src/app
 
-RUN apk add --update --no-cache python3 gcc g++
+RUN apk add --update --no-cache gcc g++
 
-RUN apk add --update --no-cache git make libcap-dev elogind-dev asciidoc
+RUN apk add --update --no-cache git make libcap-dev elogind-dev asciidoc build-base
 
 RUN apk --no-cache add libpq   
 
 RUN git clone https://github.com/ioi/isolate.git
+WORKDIR /usr/src/app/isolate
+RUN git reset --hard b5e87ec10c5c83830b0ab4b9d908437e4c14e426
+WORKDIR /usr/src/app
 
 RUN make --directory=isolate isolate
 RUN make --directory=isolate install
