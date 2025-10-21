@@ -2,7 +2,6 @@ FROM python:3.10.19-alpine3.22 as build
 
 WORKDIR /usr/src/app
 
-RUN apk add --update --no-cache
 # RUN rm /usr/lib/python*/EXTERNALLY-MANAGED
 RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
